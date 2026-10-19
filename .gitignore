@@ -27,3 +27,6 @@ __pycache__/
 
 # 自检报告（运行时生成）
 PicTool-*.txt
+
+# 布局基线备份（--regen-layout 每次自动生成）
+tools/golden-layout.txt.bak-*
