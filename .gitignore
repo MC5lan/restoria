@@ -1,0 +1,25 @@
+# 构建产物
+dist/
+*.pdb
+
+# 日志与临时文件
+*.log
+*.tmp
+Thumbs.db
+desktop.ini
+
+# Python
+__pycache__/
+*.pyc
+
+# 编辑器
+.vs/
+.vscode/
+*.user
+*.suo
+
+# 本地工作区数据（勿提交）
+.workbuddy/
+
+# 自检报告（运行时生成）
+PicTool-*.txt
