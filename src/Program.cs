@@ -304,11 +304,26 @@ namespace PicTool
                 f.Close();
                 return;
             }
-            if (startPath == "--layout")
+            if (startPath == "--layout" || startPath == "--layout-check")
             {
-                // 诊断用：输出所有控件实际布局后退出
+                // --layout       只导出快照，不看基线，永远退出 0
+                // --layout-check 导出快照并与 tools\golden-layout.txt 比较，不一致退出 1
+                //
+                // 为什么要有第二个：CI 里写过
+                //     dist\Restoria.exe --layout
+                //     if errorlevel 1 (exit /b 1)
+                // 这两行，但 --layout 从来不设退出码，所以那个判断永远不会成立，
+                // 这一步在 CI 上一直是"绿的空壳"。门禁只有在能失败的时候才是门禁。
                 MainForm f = new MainForm(null);
                 f.DumpLayout();
+
+                if (startPath == "--layout-check")
+                {
+                    string gold = LayoutBaselinePath();
+                    string rep = Path.Combine(Path.GetTempPath(), "PicTool-layout.txt");
+                    int rc = CompareLayout(gold, rep);
+                    Environment.ExitCode = rc;
+                }
                 return;
             }
             if (startPath == "--shot-shortcuts")
@@ -377,6 +392,76 @@ namespace PicTool
         public static string EnvPath()
         {
             return Path.Combine(Path.GetTempPath(), "PicTool-env.txt");
+        }
+
+        // 布局基线的位置：exe 在 dist\，基线在仓库根的 tools\ 下。
+        // 用 exe 位置而不是当前工作目录 —— CI 里工作目录是什么由 runner 决定，
+        // 而基线总是在二进制旁边那条固定的相对路径上。
+        static string LayoutBaselinePath()
+        {
+            string dir = AppDomain.CurrentDomain.BaseDirectory;
+            // dist\ → 仓库根
+            DirectoryInfo d = new DirectoryInfo(dir);
+            if (d.Parent != null) d = d.Parent;
+            return Path.Combine(Path.Combine(d.FullName, "tools"), "golden-layout.txt");
+        }
+
+        // --layout-check 的比较。返回 0 = 与基线逐行一致，1 = 有差异或无法比较。
+        //
+        // 只比较，不改基线。基线只能由 --regen-layout（gate.py）显式重建：
+        // 门禁自己把基线改成"当前状态"的话，它就永远通过，也就没有意义了。
+        static int CompareLayout(string gold, string snapshot)
+        {
+            try
+            {
+                if (!File.Exists(gold))
+                {
+                    Console.Error.WriteLine("布局基线不存在: " + gold);
+                    Console.Error.WriteLine("先跑 python tools\\gate.py --regen-layout");
+                    return 1;
+                }
+                if (!File.Exists(snapshot))
+                {
+                    Console.Error.WriteLine("快照未生成: " + snapshot);
+                    return 1;
+                }
+
+                string[] a = File.ReadAllLines(snapshot, System.Text.Encoding.UTF8);
+                string[] b = File.ReadAllLines(gold, System.Text.Encoding.UTF8);
+
+                int n = Math.Min(a.Length, b.Length);
+                int diff = 0;
+                for (int i = 0; i < n && diff < 10; i++)
+                {
+                    string x = a[i].TrimEnd('\r');
+                    string y = b[i].TrimEnd('\r');
+                    if (x == y) continue;
+                    diff++;
+                    Console.Error.WriteLine("行 " + (i + 1) + " 不一致");
+                    Console.Error.WriteLine("  当前: " + x.Trim());
+                    Console.Error.WriteLine("  基线: " + y.Trim());
+                }
+
+                if (a.Length != b.Length)
+                {
+                    Console.Error.WriteLine("行数不同：当前 " + a.Length + " 行，基线 " + b.Length + " 行");
+                    return 1;
+                }
+                if (diff > 0)
+                {
+                    Console.Error.WriteLine("布局与基线不一致（至少 " + diff + " 处）。");
+                    Console.Error.WriteLine("若这次改动是有意的，请跑 --regen-layout 更新基线并在提交里说明。");
+                    return 1;
+                }
+
+                Console.WriteLine("布局与基线一致（" + a.Length + " 行）。");
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine("比较失败: " + ex.Message);
+                return 1;
+            }
         }
 
         static void WriteEnvReport()

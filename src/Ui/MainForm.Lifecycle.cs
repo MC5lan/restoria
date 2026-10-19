@@ -349,7 +349,12 @@ namespace PicTool
             ApplyContentScroll();
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
             sb.AppendLine("Form client size = " + ClientSize.Width + "x" + ClientSize.Height);
-            sb.AppendLine("环境: " + SysInfo.Describe());
+            // 环境行**不能进快照的可比较部分**：RAM、核数、CLR 版本每台机器都不同，
+            // 写进去就等于让基线与生成它的那台机器绑定，换机器（包括 CI）必然假报警。
+            // 之前它确实被写进去了，于是 CI 上的布局门禁从来没有真正绿过。
+            // 具体的值不用另存：Main 开头的 WriteEnvReport() 已经写到
+            // %TEMP%\PicTool-env.txt，内容比这一行详细得多。
+            sb.AppendLine("环境: (随机器变化，详见 PicTool-env.txt)");
             DumpCtrl(this, sb, 0);
             string p = Path.Combine(Path.GetTempPath(), "PicTool-layout.txt");
             try { File.WriteAllText(p, sb.ToString(), System.Text.Encoding.UTF8); } catch { }

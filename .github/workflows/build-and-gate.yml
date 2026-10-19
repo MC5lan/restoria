@@ -35,7 +35,16 @@ jobs:
       - name: Layout snapshot must match the baseline
         shell: cmd
         run: |
-          dist\PicTool.exe --layout
+          rem --layout-check, not --layout. --layout only exports the snapshot and
+          rem always exits 0, so the errorlevel test below it never fired and this
+          rem step was a green shell that checked nothing. --layout-check compares
+          rem against tools\golden-layout.txt and exits 1 on any difference.
+          rem
+          rem The snapshot's environment line used to contain RAM size and core
+          rem count, which differ per machine, so the comparison could never pass
+          rem off the author's box. It is now a fixed string; the real values go
+          rem to %TEMP%\PicTool-env.txt.
+          dist\PicTool.exe --layout-check
           if errorlevel 1 (exit /b 1)
 
       - name: Resource gate (LockBits pairing)

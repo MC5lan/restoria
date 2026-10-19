@@ -89,7 +89,7 @@ The whole `ai/` payload is 30 files, about 59 MB, and is needed only for AI inpa
 ### Engineering
 
 - **134 headless self-tests** (`--selftest`): algorithm thresholds, undo budget, recovery location, shortcut conflicts
-- **Layout baseline regression** (`--layout`): objective evidence that a UI refactor changed nothing
+- **Layout baseline regression** (`--layout-check`): compares the current control layout against a checked-in baseline and exits non-zero on any difference, which is what makes it evidence rather than a printout
 - **Four gates** (`tools/gate.py`): self-test, layout baseline, AI artifact, performance smoke test
 - **Continuous integration**: GitHub Actions builds and runs the gates on every push
 - Parallel regression for the archive pipeline: extreme mode at parallel=1/2/4 is byte-identical
@@ -141,7 +141,7 @@ It contains `onnxruntime.dll`, `migan.onnx`, the `ocr\` models, and the `win7\` 
 ```bat
 build.bat                                  :: compile
 dist\Restoria.exe --selftest                :: 1. algorithm self-test (exit 0 = pass)
-dist\Restoria.exe --layout                  :: 2. layout snapshot (compare against the baseline)
+dist\Restoria.exe --layout-check             :: 2. layout vs baseline; exits 1 on any difference
 python tools\check_resources.py --strict     :: 3. resource gate (LockBits pairing)
 python tools\gate.py                       :: 4. all gates, including the performance smoke test
 ```
@@ -161,7 +161,8 @@ Headless modes for scripting and bug reports. Reports land in `%TEMP%\PicTool-*.
 | Flag | Purpose |
 |---|---|
 | `--selftest` | 134 algorithm and interaction self-tests; exit 0 = all pass |
-| `--layout` | Layout snapshot (should be line-identical before and after a refactor) |
+| `--layout` | Export the control layout snapshot (always exits 0; for inspection only) |
+| `--layout-check` | Same snapshot, compared against `tools\golden-layout.txt`; exit 1 on any difference |
 | `--archive <in> <out> [dpi] [options]` | Run the pipeline headless |
 | `--skew-test <file-or-folder> [n]` | Skew detection with a black-border control comparison |
 | `--ai-check` / `--ai-check-silent` | AI runtime and model check (silent for unattended installer use) |

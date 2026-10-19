@@ -1,5 +1,5 @@
 ﻿Form client size = 1080x680
-环境: RAM 16236MB, 64 位进程, 12 核, 并行 8, 图片内存预算 1400MB, 最多 2000 张, CLR 4.0.30319.42000（.NET 4.x 运行时，本程序要求 4.8 或更高）
+环境: (随机器变化，详见 PicTool-env.txt)
 CanvasControl '' bounds={X=312,Y=52,Width=444,Height=602} dock=Fill vis=True z=0
 FlatSplitter '' bounds={X=306,Y=52,Width=6,Height=602} dock=Left vis=True z=1
 WorkspacePanel '' bounds={X=62,Y=52,Width=244,Height=602} dock=Left vis=True z=2
