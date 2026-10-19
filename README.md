@@ -1,209 +1,224 @@
-﻿# Restoria
+# Restoria
 
-给老旧 Windows 机器（包括 2010 年左右的 Win7 学生机）用的**本地档案扫描件处理工具**。
-把扫描好的老档案图片，一键变成标准 A4、白底黑字、方向端正、干净无污的归档件。
+Turn scanned archive pages into clean A4 archival documents — on machines as old as Windows 7.
 
-**特点：单文件、双击即用、零联网、无 Python 无 PyTorch。**
+Orientation detection, deskew, denoise, stain removal, black/white level and tone, then A4 archival output. One click does what used to take a scanner operator an afternoon: turn the page, crop it, clean the specks, straighten it, lay it out.
 
-- 目标平台：Windows 7 SP1 ~ Windows 11（.NET Framework 4.8，AnyCPU）
-- 界面：GDI+ 全自绘 + 双缓冲，老机器不卡；浅色/深色双主题
-- 代码：约 2.6 万行 C#，零第三方 NuGet 依赖，构建只需系统自带的 csc.exe
+**One file. Double-click to run. Nothing leaves the machine.**
+
+- **Runs on:** Windows 7 SP1 → Windows 11 (.NET Framework 4.8, AnyCPU)
+- **Interface:** hand-drawn with GDI+ and double-buffered, so it stays responsive on old hardware; light and dark themes
+- **Code:** ~26,000 lines of C#, zero third-party NuGet packages, builds with the compiler that ships with Windows
 
 ---
 
-## 功能特性
+## Download
 
-### 一键归档流水线
+Releases are published on the [Releases page](https://github.com/MC5lan/restoria/releases).
 
-方向检测 → 镜像检测 → 去噪 → 去斜 → 黑白电平/自动色调 → A4 标准输出。
-点一次按钮，原来手工要做的事情（转方向、裁边、去污、去黑点、排 A4 版面）全部自动完成。
-
-- **普通档**：速度与干净度平衡；方向只认装订孔物理证据
-- **极致档**：只删最确定的尘点，删过头自动撤销（**宁可留黑点，也不吃掉字**）；
-  无装订孔的页用 OCR 判断方向。适合字迹淡、内容重要的档案
-- 归档全程**只新增文件**，原图一个字节都不会动；中断后重跑自动跳过已完成页
-- 每卷归档生成「归档报告.txt」：每页的尺寸变化、旋转角度与依据、清点数量、耗时
-
-### 单页编辑
-
-| 页签 | 功能 |
+| Asset | What it is |
 |---|---|
-| 去除 | 涂抹去污（笔刷/框选），五种修复模式：普通/增强/混合/纸面重建/AI |
-| 裁剪 | 手动裁剪 + A4 画板 |
-| 方向 | 手动旋转、一键自动纠偏（投影法倾斜检测，±20°） |
-| 调色 | 亮度/对比度/饱和度/色温、色阶、Gamma、USM 锐化（数值可点击直接输入） |
-| 印章 | 给褪色的红章补色 |
-| 批量 | 按固定参数批量处理（旋转/调色/二值化） |
-| 扫描 | WIA 扫描仪直连，输出格式可选（JPG/PNG/TIF） |
-| 文件 | 批量重命名、文件夹管理 |
-| 文字 | 往图上加文字标注 |
+| `Restoria-setup.exe` | Single-file installer. Double-click, accept the license, done. |
+| `Restoria-portable.zip` | No install needed. Extract, run `setup-boot.exe`. |
 
-### 可选 AI 修复（MI-GAN）
+Both bundles include the optional AI assets and a Win7 compatibility layer. The installer checks for the .NET runtime and verifies that the AI components load before finishing.
 
-- 基于 ONNX Runtime 1.14.1 + MI-GAN 模型的涂抹区修复，能把表格线这类长直线延伸过去
-- **子进程隔离探测**：启动路径永不加载 onnxruntime.dll，加载失败不影响主程序任何功能
-- Win7 兼容：导入表改名的垫片方案（详见 `src/Ai/AiFill.cs` 注释）
-- 模型与运行时已随仓库提供（`ai/` 目录，30 个文件，约 59 MB）
+> **Not signed yet.** Windows will show a publisher warning because the binaries are not code-signed. Choose *More info → Run anyway*.
 
-### 工程质量
-
-- **134 项无头自检**（`--selftest`）：算法判据、撤销预算、恢复落点、快捷键冲突等
-- **布局基线回归**（`--layout`）：UI 重构的「行为零变化」客观证据
-- **资源门禁**（`tools/check_resources.py`）：LockBits/UnlockBits 配对检查
-- 归档输出有并行回归背书（极致档 parallel=1/2/4 逐字节一致）
+**From source:** `build.bat` produces `dist\Restoria.exe`. The AI features additionally need the `ai\` folder copied next to it (see [Enabling AI features](#enabling-ai-features)).
 
 ---
 
-## 快速开始
+## Other languages
 
-### 方式一：直接用发布包（推荐普通用户）
+中文 · [日本語](docs/README-ja.md) · [Deutsch](docs/README-de.md) · [Français](docs/README-fr.md) · [Español](docs/README-es.md) · [Русский](docs/README-ru.md)
 
-如果你拿到了打包好的安装程序，双击安装即可（含 AI 素材、VC++ 运行库检查、静默 AI 自检）。
-卸载走控制面板「程序和功能」。
+---
 
-不想安装也可以：把 `dist\Restoria.exe`（连同同名 `.config`）拷到目标机双击就能跑，
-AI 素材需自己放进 exe 同级的 `ai\` 子目录（可直接复制本仓库的 `ai/`）。
+## What it does
 
-### 方式二：从源码构建（开发者）
+### The one-click pipeline
 
-**环境要求**：Windows + .NET Framework 4.x（构建用的是系统自带 csc.exe，无需 Visual Studio）
+Orientation → mirror detection → denoise → deskew → black/white level and automatic tone → A4 output.
+
+- **Standard** — balanced speed and cleanliness. Orientation trusts only physical binding-hole evidence.
+- **Exhaustive** — removes only the most certain dust specks, and undoes its own work if it starts eating characters. **Would rather leave a speck than lose a single stroke of a handwritten character.** Pages without binding holes fall back to OCR-based orientation. Suits faint handwriting and records where content matters more than speed.
+
+Archiving **only ever creates new files**; the original image is never modified, byte for byte. An interrupted run resumes where it left off. Each batch produces a report listing per-page dimensions, rotation and the reason for it, plus counts and timings.
+
+### Single-page editing
+
+| Tab | What it does |
+|---|---|
+| Remove | Brush or box select over damage; five fill modes: plain, enhanced, blend, paper reconstruction, AI |
+| Crop | Manual crop, or snap to an A4 board |
+| Orient | Manual rotation, or one-click deskew (projection-method detection, ±20°) |
+| Adjust | Brightness, contrast, saturation, temperature, levels, gamma, unsharp mask (every value is click-to-edit) |
+| Seal | Restore faded red seals |
+| Batch | Apply fixed parameters across a folder |
+| Scan | Talk to a WIA scanner directly; choose the output format (JPG/PNG/TIF) |
+| Files | Bulk rename, folder management |
+| Text | Stamp annotations onto a page |
+
+### Optional AI inpainting (MI-GAN)
+
+- ONNX Runtime 1.14.1 driving the MI-GAN model; extends long straight structures such as table rules across a damaged area
+- **Loaded in a child process, never in the main one.** If the runtime cannot load, the AI features switch off and nothing else is affected
+- Win7 support via renamed import-table shims (details in the comments in `src/Ai/AiFill.cs`)
+
+The whole `ai/` payload is 30 files, about 59 MB, and is needed only for AI inpainting and seal OCR.
+
+### Engineering
+
+- **134 headless self-tests** (`--selftest`): algorithm thresholds, undo budget, recovery location, shortcut conflicts
+- **Layout baseline regression** (`--layout`): objective evidence that a UI refactor changed nothing
+- **Four gates** (`tools/gate.py`): self-test, layout baseline, AI artifact, performance smoke test
+- **Continuous integration**: GitHub Actions builds and runs the gates on every push
+- Parallel regression for the archive pipeline: extreme mode at parallel=1/2/4 is byte-identical
+
+---
+
+## Known limitations
+
+Read this before assuming it will handle your material.
+
+- **Orientation needs physical evidence.** The 180° decision relies on binding holes. A page with no binding holes — a glue-bound book, a loose single sheet, a two-hole-punched document — will **not** be rotated automatically. This is deliberate: rotating a table page that was already upright is worse than leaving a flipped page for someone to notice. Use the manual rotate control, or the Exhaustive mode (which falls back to OCR) on pages that genuinely need it.
+- **Designed for flatbed-scanner output.** Phone photos have perspective distortion and are not handled.
+- **Orientation thresholds assume roughly 300 DPI scans.** At 600 DPI the binding-hole evidence falls outside the calibrated window and the tool falls back to "no rotation".
+- **The AI runtime is pinned to ONNX Runtime 1.14.1**, the last version that loads on Windows 7. Before swapping models, check operator compatibility with `python tools\onnx_ops.py --diff ai\migan.onnx candidate.onnx`. (LaMa was dropped because its FFT operator misbehaves in that version's CPU kernels.)
+- **Archiving refuses to run over** the Desktop, the root of C:, system folders, or the user profile directory.
+- **No code-signing certificate yet,** so Windows shows a publisher warning on first run.
+
+---
+
+## Building from source
+
+**Requirements:** Windows with .NET Framework 4.x. Nothing else — no Visual Studio, no NuGet restore.
 
 ```bat
 build.bat
 ```
 
-产物在 `dist\Restoria.exe`。构建脚本会自动：
+The output is `dist\Restoria.exe`. The build script:
 
-1. 检测 `vendor\onnxruntime_c_api.h`，存在则生成 AI 互操作层（`src\Ai\OrtApi.Generated.cs`）并启用 AI 模式；不存在则构建无 AI 版本，其余功能不变
-2. 应用图标（`assets\app.ico`）与清单（`assets\app.manifest`，声明 Win7~11 支持、asInvoker 不提权）
-3. 生成 `.config`（声明 .NET 4.x 运行时）
+1. Detects `vendor\onnxruntime_c_api.h`. If present it generates the AI interop layer (`src\Ai\OrtApi.Generated.cs`) and builds with AI support; if absent it builds without it and everything else still works.
+2. Embeds the icon (`assets\app.ico`, drawn as GDI+ path geometry by `tools\IconGen.cs` — the source is the single source of truth for the design) and the manifest (`assets\app.manifest`, declaring Win7–11 support and `asInvoker` so it never requests elevation).
+3. Writes a `.config` declaring the .NET 4.x runtime.
+4. Emits a PDB next to the exe and renames it to match the product name, so a crash report from a field machine can be resolved against matching symbols.
 
-> **关于产物名**：`build.bat` 先编译出内部名 `dist\PicTool.exe`，再按 `appname.txt`
-> 的内容复制一份为发布名 `dist\Restoria.exe`。两者字节完全相同，只是文件名不同。
-> `PicTool` 是内部标识符（程序集命名空间仍为 `PicTool`），对外名称一律是 Restoria。
+> **About the product name:** `build.bat` compiles to the internal name `dist\PicTool.exe`, then copies it to the published name `dist\Restoria.exe` (from `appname.txt`). The two files are byte-identical. `PicTool` is the internal identifier and the assembly namespace; the name everywhere a user sees is Restoria.
 
-**启用 AI 功能**：把仓库里的 `ai\` 目录整个复制到 `dist\` 旁边即可
-（`ai\onnxruntime.dll` + `ai\migan.onnx` + `ai\ocr\` + `ai\win7\` 垫片，
-共 30 个文件 / 约 59 MB）。
+### Enabling AI features
 
-**跑自检**：
+Copy the `ai\` folder next to the exe:
 
 ```bat
-dist\Restoria.exe --selftest
+xcopy /e /y ai dist\ai
 ```
 
-退出码 0 = 全部通过。更多诊断口见下文。
+It contains `onnxruntime.dll`, `migan.onnx`, the `ocr\` models, and the `win7\` shims — 30 files, about 59 MB. If you do not need them, delete `ai\` before building.
+
+### Running the checks
+
+```bat
+build.bat                                  :: compile
+dist\Restoria.exe --selftest                :: 1. algorithm self-test (exit 0 = pass)
+dist\Restoria.exe --layout                  :: 2. layout snapshot (compare against the baseline)
+python tools\check_resources.py --strict     :: 3. resource gate (LockBits pairing)
+python tools\gate.py                       :: 4. all gates, including the performance smoke test
+```
+
+The layout baseline lives in `tools\golden-layout.txt`. After an intentional UI change, regenerate it with `--regen-layout`.
+
+The AI-artifact and performance gates need the fixed test page `_probe\doc_test.png`, which is generated deterministically by `Restoria.exe --make-fixture`. It is checked in, so a fresh clone has it; if it goes missing the gate regenerates it and only fails if generation itself fails.
+
+The performance baseline records a machine tag. A baseline from a different machine is reported rather than silently compared against — run `--regen-perf` to rebuild it locally.
 
 ---
 
-## 命令行诊断口
+## Command-line diagnostics
 
-主程序支持无头诊断模式（报告落 `%TEMP%\PicTool-*.txt`，退出码干净，不弹框）：
+Headless modes for scripting and bug reports. Reports land in `%TEMP%\PicTool-*.txt`; exit codes are clean and no dialogs appear.
 
-| 参数 | 用途 |
+| Flag | Purpose |
 |---|---|
-| `--selftest` | 134 项算法/交互自检，退出码 0 = 全过 |
-| `--layout` | 布局快照（重构前后对比应为逐行一致） |
-| `--archive <输入> <输出> [dpi] [选项]` | 一键归档流水线（可脚本化） |
-| `--skew-test <图或文件夹> [页数]` | 倾斜检测专项（含黑边保险对照） |
-| `--ai-check` / `--ai-check-silent` | AI 运行时与模型自检（silent 供安装器无人值守用） |
-| `--ai-fill <输入> <输出> [x y w h]` | 单图 AI 修复并落盘（离线比对用） |
-| `--paper-fill <输入> <输出> [x y w h]` | 单图纸面重建并落盘 |
-| `--wheeltest[=文件夹]` | 滚轮三区（画布/左栏/右栏）链路自检 |
-| `--uityping` | 输入框焦点判据自检（新旧判据并排） |
-| `--undotest` | 撤销预算与指纹级回退自检 |
-| `--cursortest` | 自绘光标形态自检（截图留证） |
-| `--droptest` | 拖放接收树自检 |
+| `--selftest` | 134 algorithm and interaction self-tests; exit 0 = all pass |
+| `--layout` | Layout snapshot (should be line-identical before and after a refactor) |
+| `--archive <in> <out> [dpi] [options]` | Run the pipeline headless |
+| `--skew-test <file-or-folder> [n]` | Skew detection with a black-border control comparison |
+| `--ai-check` / `--ai-check-silent` | AI runtime and model check (silent for unattended installer use) |
+| `--ai-fill <in> <out> [x y w h]` | Inpaint one region to disk, for offline comparison |
+| `--paper-fill <in> <out> [x y w h]` | Paper-region reconstruction to disk |
+| `--make-fixture [path]` | Export the deterministic test page used by the gates |
+| `--bench [golden] [--regen]` | Per-operator timing plus output fingerprints |
+| `--wheeltest[=folder]` | Wheel routing across canvas, left rail and right rail |
+| `--uityping` | Input-focus decision check, old and new predicates side by side |
+| `--undotest` | Undo budget and frame-level rollback check |
+| `--cursortest` | Custom cursor shape check, leaves a screenshot |
+| `--droptest` | Drag-and-drop receive tree check |
 
-环境变量开关：`PICTOOL_AI_TRACE=1`（ONNX 每步追踪）、`PICTOOL_OCR_TRACE=1`（OCR 追踪）、
-`PICTOOL_SKEW_NOGUARD=1`（关闭黑边保险）。
+Environment switches: `PICTOOL_AI_TRACE=1`, `PICTOOL_OCR_TRACE=1`, `PICTOOL_SKEW_NOGUARD=1`, and `PICTOOL_RECOVERY_ROOT` (redirects the recovery area; used by the probes so they never touch real user data).
 
 ---
 
-## 目录结构
+## Layout
 
 ```
-├── src/                  全部源码（68 个 .cs，约 2.6 万行）
-│   ├── Program.cs        入口、全局异常兜底、诊断模式分发
-│   ├── Core/             自检套件、基准、版本、恢复、位图桥
-│   ├── Platform/         系统探测、WIA 扫描、文件工具
-│   ├── Imaging/          纯图像算法（不依赖 UI）：清洁算子、增强、修复、归档
-│   ├── Ai/               可选 AI 叠加：ONNX 互操作、MI-GAN、OCR 方向裁判
-│   └── Ui/               界面与交互（唯一依赖 WinForms 的地方）
-├── assets/               图标与清单。图标由 tools\IconGen.cs 用 GDI+ 路径几何绘制，
-│                         源码即唯一设计源（make_icon.bat 可重新生成所有尺寸）
-├── tools/                构建与验证工具链
-│   ├── gate.py           门禁：自检 + 布局基线 + AI 产物 + 性能冒烟
-│   ├── check_resources.py 资源门禁（LockBits 配对）
-│   ├── onnx_ops.py       ONNX 模型算子兼容性扫描（换模型前先跑）
-│   ├── archive_demo.py   归档前后对比图生成（人眼验收用）
-│   ├── make_package.ps1  打包链（编译→组装→签名→自校验）
-│   └── install/          安装器与卸载器源码
-├── ai/                   AI 素材：ONNX 运行时 + MI-GAN 模型 + OCR 模型 + Win7 垫片
-├── vendor/               onnxruntime_c_api.h（生成互操作层用）
-├── docs/                 使用手册、架构说明
-├── build.bat             一键构建
-└── CHANGELOG.md          版本变更记录
+├── src/                  All source (68 .cs files, ~26,000 lines)
+│   ├── Program.cs        Entry point, global exception fallback, diagnostic dispatch
+│   ├── Core/             Self-test suite, benchmark, version, recovery, bitmap bridge
+│   ├── Platform/         System probing, WIA scanning, file utilities
+│   ├── Imaging/          Pure image algorithms (no UI dependency): cleaning, enhancement, repair, archiving
+│   ├── Ai/               Optional AI layer: ONNX interop, MI-GAN, OCR orientation judge
+│   └── Ui/               Interface and interaction (the only place WinForms is referenced)
+├── assets/               Icons and manifests. The icon is drawn as GDI+ path geometry
+│                         by tools\IconGen.cs, which is the single design source
+├── _probe/               Fixed test page used by the gates (regenerate with --make-fixture)
+├── tools/                Build and verification toolchain
+│   ├── gate.py           The four gates: self-test + layout + AI artifact + performance
+│   ├── check_resources.py Resource gate (LockBits pairing)
+│   ├── onnx_ops.py       ONNX operator compatibility scan (run before swapping models)
+│   ├── archive_demo.py   Before/after comparison image generator
+│   ├── make_package.ps1  Packaging chain (build → assemble → sign → self-verify)
+│   └── install/          Installer and uninstaller source
+├── ai/                   Optional AI payload: ONNX runtime + MI-GAN + OCR models + Win7 shims
+├── vendor/               onnxruntime_c_api.h (generates the interop layer)
+├── docs/                 Translations and architecture notes
+├── build.bat             One-command build
+├── CHANGELOG.md          Version history
+└── THIRD_PARTY_NOTICES   Licenses for every bundled third-party component
 ```
 
-依赖方向（单向，不要反向引用）：
+Dependencies flow one way; reverse references are not allowed:
 
 ```
 Ui ──→ Imaging / Ai / Platform / Core
-Ai ──→ Platform（SysInfo）
-Imaging ──→ Platform（少量）
-Platform ──→ （无）
+Ai ──→ Platform (SysInfo)
+Imaging ──→ Platform (a little)
+Platform ──→ (nothing)
 ```
 
-`Imaging` 与 `Ai` 里不允许出现 `System.Windows.Forms`；算法只接收参数、返回新位图，不改全局状态。
+`Imaging` and `Ai` must not reference `System.Windows.Forms`. Algorithms take parameters and return new bitmaps; they do not mutate global state.
 
 ---
 
-## 开发协议（改代码必跑）
+## Third-party components and licenses
 
-```bat
-build.bat                                    :: 编译
-dist\Restoria.exe --selftest                  :: ① 算法自检（退出码 0）
-dist\Restoria.exe --layout                    :: ② 布局快照（与基线逐行对比）
-python tools\check_resources.py --strict     :: ③ 资源门禁
-python tools\gate.py                         :: ④ 总门禁（含性能冒烟）
-```
+Restoria's own code is MIT licensed (see [LICENSE](LICENSE)). The components below ship inside the release bundle and remain under their own licenses:
 
-布局基线存在 `tools\` 的 golden 快照里；UI 有意变更时用 `--regen-layout` 重新生成基线。
-
----
-
-## 已知限制
-
-- 针对**扫描仪输出的平面扫描件**设计；手机拍照有透视变形，不保证效果
-- AI 运行时钉死在 ONNX Runtime 1.14.1（Win7 能用的最后一版）；换模型前先用
-  `python tools\onnx_ops.py --diff ai\migan.onnx 候选.onnx` 核对算子兼容性
-  （LaMa 因 FFT 算子在该版本 CPU 内核上有已知问题被弃用）
-- 极致档方向检测：180° 只认装订孔物理证据（实测误转端正页比漏转更糟）
-- 归档保险丝：桌面、C 盘根目录、系统文件夹、用户主目录不允许整树归档
-
----
-
-## 第三方素材与许可证
-
-本仓库代码以 [MIT](LICENSE) 发布。以下第三方组件随发布包分发，各保留其自身版权与许可证：
-
-| 组件 | 版本 | 版权 | 许可证 |
+| Component | Version | Copyright | License |
 |---|---|---|---|
-| ONNX Runtime（`ai\onnxruntime.dll`、`ai\win7\onnxruntime.dll`） | 1.14.1 | © Microsoft Corporation | MIT |
-| PP-OCRv3 检测/识别模型 + 字表（`ai\ocr\`） | PP-OCRv3 | © PaddlePaddle Authors | Apache-2.0 |
-| MI-GAN 修复模型（`ai\migan.onnx`） | 512, ICCV 2023 | © 2024 Picsart AI Research | MIT |
-| Win7 API-set 兼容垫片（`ai\win7\*.dll`） | — | Microsoft 前向器 | MIT |
+| ONNX Runtime (`ai\onnxruntime.dll`, `ai\win7\onnxruntime.dll`) | 1.14.1 | © Microsoft Corporation | MIT |
+| PP-OCRv3 detection/recognition models + dictionary (`ai\ocr\`) | PP-OCRv3 | © PaddlePaddle Authors | Apache-2.0 |
+| MI-GAN inpainting model (`ai\migan.onnx`) | 512, ICCV 2023 | © 2024 Picsart AI Research | MIT |
+| Win7 API-set compatibility shims (`ai\win7\*.dll`) | — | Microsoft forwarders | MIT |
 
-各组件的完整许可证文本与说明见 **[THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES)**。
+Full license texts and details are in **[THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES)**.
 
-上述组件**仅**服务于可选的 AI 修复与印章 OCR。核心流水线（方向、纠偏、去噪、
-去渍、黑白电平、色彩、A4 输出）是纯 C# 实现，不含任何原生依赖，不需要 `ai/`
-目录也能完整运行。程序会先在子进程中探测 AI 运行时能否加载，失败时干净地关闭
-AI 功能，不影响主程序。
+These components serve **only** the optional AI inpainting and seal OCR. The core pipeline — orientation, deskew, denoise, stain removal, black/white level, tone, A4 output — is pure C# with no native dependency and runs fully without the `ai\` directory. The program probes whether the AI runtime can load, in a child process, and disables those features cleanly if it cannot; no AI code path ever runs inside the main process.
 
-## 致谢
+## Acknowledgements
 
-- [ONNX Runtime](https://github.com/microsoft/onnxruntime) — 跨平台推理引擎
-- [MI-GAN](https://github.com/Picsart-AI-Research/MI-GAN) — 图像修复模型（ICCV 2023）
-- [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR) — PP-OCRv3 检测/识别模型
+- [ONNX Runtime](https://github.com/microsoft/onnxruntime) — cross-platform inference engine
+- [MI-GAN](https://github.com/Picsart-AI-Research/MI-GAN) — image inpainting model, ICCV 2023
+- [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR) — PP-OCRv3 detection and recognition models
