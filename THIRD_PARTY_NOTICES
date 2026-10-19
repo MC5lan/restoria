@@ -303,11 +303,25 @@ SOFTWARE.
 | Components | `ai/win7/*.dll` — 4 `w7shim-*.dll` and 20 `api-ms-win-core-*.dll` |
 | Copyright | See individual files; these are Microsoft-authored API-set forwarders |
 | License | MIT (redistributed as part of the ONNX Runtime Win7 support scheme) |
-| Why bundled | Windows 7 does not ship the Universal C Runtime API sets that ONNX Runtime 1.14 imports. These forwarders satisfy those imports on Win7 without changing the runtime itself. |
+| Why bundled | Windows 7 does not ship the Universal C Runtime API sets that ONNX Runtime 1.14 imports. These files satisfy those imports on Win7 without changing the runtime itself. |
 
-These shims exist only to make the unmodified ONNX Runtime binary load on
-Windows 7. They are not linked by Restoria's own code and are never called
-directly.
+The 4 `w7shim-*.dll` are the actual patch: the import table of
+`ai/win7/onnxruntime.dll` was rewritten so that the four API sets absent from
+Windows 7 are imported under ordinary filenames instead. The Windows loader
+resolves `api-ms-win-*` through a built-in API-set schema and never consults
+the filesystem, so a same-named DLL placed alongside the binary would be
+ignored; renaming the import is what forces a filesystem lookup.
+
+The 20 `api-ms-win-core-*.dll` serve a different purpose: they are fallback
+copies for the API-set entries Windows 7's own API-set coverage does not
+provide. On Windows 8 and later they are redundant, because the system schema
+resolves those names directly — `tools/ProbeShim.cs` demonstrates the patched
+runtime loading without them. On Windows 7 they are the only thing that can
+satisfy those imports, so they must ship in the same directory as the patched
+runtime.
+
+Nothing here is linked by Restoria's own code; no AI code path runs in the
+main process.
 
 ---
 

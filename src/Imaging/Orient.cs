@@ -28,7 +28,7 @@ namespace PicTool
             public bool Sideways;        // 检测到横躺
             public bool UpsideDown;      // 检测到倒置
             public int RowBands, ColBands;
-            public bool PunctSuppressed;   // 无孔页抑制了"标点重力判倒置"
+            public bool PunctSuppressed;   // 恒为 true：标点重力判据已废弃，无孔页不再据此倒置
             public double InkRatio;      // 墨迹占比
             public bool GiantGrid;       // 表格/表单页（格线连成巨型组件）
             public int HoleL, HoleR, HoleT, HoleB;   // 各边带装订孔计数
@@ -192,22 +192,21 @@ namespace PicTool
                 r.Note = "装订孔在下(" + holeB + "个) → 判横躺 90°";
                 return r;
             }
-            // 孔在左（或证据不足，如只有 1 个孔）→ 按正放处理，走几何兜底
+            // 走到这里 = 四种孔位分支都没命中：要么一个孔都没有，要么有孔但不成列
+            //（证据不足，例如只有 1 个孔）。这批页**不再有任何几何兜底** ——
+            // 定案是"无孔不转向"，理由见下面的 2026-09-30 实测。
 
             // 巨型连通域守卫：表格/登记表的格线全部相交，连成一个横跨大半页的
-            // 巨型组件。这类页的"小组件"不是标点而是格线交点与手写散笔，
-            // 标点重力在表格页上会翻车——仅在装订孔没给结论时保守使用。
+            // 巨型组件。这是本页的重要标记，会写进 Note 供排查。
             bool giantGrid = maxCompArea > 0.40 * (long)w * h;
             r.GiantGrid = giantGrid;
 
-            // ① 横躺？用**行带计数**的结构化判据（锐度比对稀疏页面不鲁棒：
-            //    实测合成文字页行/列锐度比只有 1.19，而真实扫描页是 12000 倍——
-            //    差 4 个数量级的判据没法定一个固定阈值）。
-            //    文字页正放：行投影有 N≥3 条分立的"文字行带"，列投影只有 1~2 条
-            //    "文字块带"（左右留白）；横躺时两者对调。
-            //    🔴 还要求 rowBands ≤ 2：真正的横躺文字页在原坐标里"行带"就是
-            //    文字块（1~2 条）；透印背面页的竖向格线会造出一堆列带
-            //    （实测 0006：行带 5/列带 10，被误判横躺转了 90°——行带 5 直接否决）。
+            // 行带/列带计数。**注意：这两个值现在只作诊断输出，不再参与转向决策**
+            //   （定案见下面的"无孔不转向"）。保留它们是因为排查现场问题时，
+            //   知道这页有几个行带/列带能立刻判断是不是表格页 —— 例如实测 0006
+            //   是"行带 5/列带 10"，正是竖格线造成的假横躺信号。
+            //   曾经据此定过阈值（rowBands ≤ 2 才判横躺），但阈值在空白表格页上
+            //   完全失效（空表竖格线天然造出 6~13 条列带），故已废弃。
             int rowBands = CountBands(rowSum);
             int colBands = CountBands(colSum);
             r.RowBands = rowBands;
@@ -252,17 +251,6 @@ namespace PicTool
                 if (cnt > 3) return false;
             }
             return true;
-        }
-
-        static double Sharpness(int[] prof)
-        {
-            double s = 0;
-            for (int i = 1; i < prof.Length; i++)
-            {
-                double d = prof[i] - prof[i - 1];
-                s += d * d;
-            }
-            return s;
         }
 
         // 投影里的"带"数：阈值为峰值 5%（至少 3），相邻带间隔 <8px 算同一条，
@@ -333,61 +321,19 @@ namespace PicTool
             return comps;
         }
 
-        static bool PunctGravitySaysUpsideDown(bool[] ink, int w, int h)
-        {
-            List<Comp> comps = LabelComps(ink, w, h);
+        // [已废弃 2026-10，实测证伪] PunctGravitySaysUpsideDown —— "标点重力"倒置判据。
+//
+// 实现已删除（原 53 行）。留下这段说明，是为了防止有人凭直觉把它捡回来：
+// 它假设标点（句号、逗号）落在文字行的下缘，倒置页的标点重心会偏上。
+// 实战把这个假设推翻了 —— 2026-09-30 的 15 页无孔端正页上，标点重心等于
+// 抛硬币，几何判据给出的转向**全部是误判**。现在无孔页一律不转向
+// （见 Detect 里的"无孔不转向"定案），标点数据只作为诊断值写进 Note。
+//
+// 同时废弃的还有Sharpness()（行/列投影锐度比对）。理由：合成文字页的行/列
+// 锐度比只有 1.19，真实扫描页是 12000 倍 —— 差 4 个数量级的判据无法定出
+// 一个跨样本稳定的固定阈值。改用 CountBands 的"带计数"，判据稳健得多。
 
-            // 行带：大组件（≥150px²）的真实像素行投影 > 2 且带高 ≥24（与 Python 原型一致）
-            int[] rowSum = new int[h];
-            foreach (Comp c in comps)
-            {
-                if (c.Area < 150) continue;
-                for (int yy = c.Y0; yy <= c.Y1; yy++)
-                {
-                    int baseIdx = yy * w;
-                    int cnt = 0;
-                    for (int xx = c.X0; xx <= c.X1; xx++)
-                        if (ink[baseIdx + xx]) cnt++;
-                    rowSum[yy] += cnt;
-                }
-            }
-            List<int[]> bands = new List<int[]>();
-            int y = 0;
-            while (y < h)
-            {
-                if (rowSum[y] > 2)
-                {
-                    int y0 = y;
-                    while (y < h && rowSum[y] > 2) y++;
-                    if (y - y0 >= 24) bands.Add(new int[] { y0, y });
-                }
-                else y++;
-            }
-            if (bands.Count < 2) return false;
-
-            // 标点尺寸的小组件：中心落在某行带 ±2 内 → 统计相对高度
-            int low = 0, total = 0;
-            foreach (Comp c in comps)
-            {
-                int cw = c.X1 - c.X0 + 1, chh = c.Y1 - c.Y0 + 1;
-                if (c.Area >= 300 || cw < 6 || cw > 30 || chh < 6 || chh > 30) continue;
-                int cy = (c.Y0 + c.Y1) / 2;
-                foreach (int[] b in bands)
-                {
-                    if (cy >= b[0] - 2 && cy <= b[1] + 2)
-                    {
-                        double rel = (double)(cy - b[0]) / (b[1] - b[0]);
-                        total++;
-                        if (rel > 0.55) low++;
-                        break;
-                    }
-                }
-            }
-            if (total < 8) return false;       // 样本太少不下结论（保守）
-            return (double)low / total < 0.42;
-        }
-
-        // ---------------- 应用 ----------------
+// ---------------- 应用 ----------------
 
         // 无损旋转 turns×90°（顺时针）。turns=0 时原样返回同一引用。
         public static Bitmap Apply(Bitmap page, int turnsCw)
