@@ -8,6 +8,66 @@
 
 ## 1.5.7 — 2026-10-19
 
+<!-- release-notes:start -->
+Pre-open-source engineering cleanup. Image processing output is pixel-identical
+to 1.5.6; nothing about how pages are processed changed.
+
+**Distribution and compliance**
+
+- Added THIRD_PARTY_NOTICES with the full licence text of every bundled
+  component: ONNX Runtime (MIT), PP-OCRv3 (Apache-2.0), MI-GAN (MIT).
+  Apache-2.0 requires the licence and NOTICE to ship with the binaries;
+  their absence was a compliance gap.
+- Installer assets are named in English and match the README download table:
+  `Restoria-setup.exe` and `Restoria-portable.zip`.
+- The installer and uninstaller compile at all. Unescaped quotes in the
+  licence text had made the whole packaging chain fail, and nothing else
+  exercised those files.
+
+**Gates that mean something**
+
+- The fixed test page is now in the repository. It used to live outside version
+  control, so on a fresh clone two of the four gates skipped, and a skip was
+  recorded as a pass: four gates became two.
+- A missing test page is regenerated rather than skipped; only a failed
+  regeneration fails the gate.
+- The performance baseline records which machine recorded it, and a baseline
+  from another machine is reported rather than compared against.
+- The baseline no longer lowers itself when a run is faster. It only moves on an
+  explicit `--regen-perf`, because auto-lowering meant one accidentally skipped
+  step could permanently weaken the gate.
+- GitHub Actions builds and runs the gates on every push.
+
+**Reliability**
+
+- The PDB now ships with the program. An optimized build without symbols
+  produced stack traces of bare addresses, so crash reports could not be
+  resolved to a line.
+- The `--undotest` and `--cursortest` probes no longer touch user data. They
+  deleted `%LOCALAPPDATA%\PicTool\recovery\s-*`, which holds real unfinished
+  recovery snapshots, from inside the shipped executable.
+
+**Code**
+
+- Removed two functions with no callers from `Orient.cs`, leaving the reason
+  each was abandoned in place so they are not reinstated.
+- Fixed comments that contradicted the code they described.
+- Corrected the Win7 shim documentation and added `tools/ProbeShim.cs`, which
+  lets the Windows loader answer the question directly.
+- Verified that the layout gate is sensitive at one pixel: `LayoutGateProbe`
+  widens a control by 1px and the snapshot changes.
+
+**Documentation**
+
+- README is now English-first, with Chinese, Japanese, German, French, Spanish
+  and Russian translations.
+- Added a Download section; the old README never pointed at the installer.
+- Added before/after images generated from the deterministic test fixture.
+- Known limitations moved up and expanded: pages without binding holes are not
+  rotated automatically, orientation thresholds assume about 300 DPI, and the
+  binaries are not code-signed.
+<!-- release-notes:end -->
+
 开源发布前的工程整改，功能代码基本未动（图像处理结果与 1.5.6 逐像素一致）。
 
 **分发与合规**
