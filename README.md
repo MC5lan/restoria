@@ -43,7 +43,7 @@
 - 基于 ONNX Runtime 1.14.1 + MI-GAN 模型的涂抹区修复，能把表格线这类长直线延伸过去
 - **子进程隔离探测**：启动路径永不加载 onnxruntime.dll，加载失败不影响主程序任何功能
 - Win7 兼容：导入表改名的垫片方案（详见 `src/Ai/AiFill.cs` 注释）
-- 模型与运行时已随仓库提供（`ai/` 目录，约 50MB）
+- 模型与运行时已随仓库提供（`ai/` 目录，30 个文件，约 59 MB）
 
 ### 工程质量
 
@@ -72,19 +72,24 @@ AI 素材需自己放进 exe 同级的 `ai\` 子目录（可直接复制本仓�
 build.bat
 ```
 
-产物在 `dist\PicTool.exe`。构建脚本会自动：
+产物在 `dist\Restoria.exe`。构建脚本会自动：
 
 1. 检测 `vendor\onnxruntime_c_api.h`，存在则生成 AI 互操作层（`src\Ai\OrtApi.Generated.cs`）并启用 AI 模式；不存在则构建无 AI 版本，其余功能不变
 2. 应用图标（`assets\app.ico`）与清单（`assets\app.manifest`，声明 Win7~11 支持、asInvoker 不提权）
 3. 生成 `.config`（声明 .NET 4.x 运行时）
 
+> **关于产物名**：`build.bat` 先编译出内部名 `dist\PicTool.exe`，再按 `appname.txt`
+> 的内容复制一份为发布名 `dist\Restoria.exe`。两者字节完全相同，只是文件名不同。
+> `PicTool` 是内部标识符（程序集命名空间仍为 `PicTool`），对外名称一律是 Restoria。
+
 **启用 AI 功能**：把仓库里的 `ai\` 目录整个复制到 `dist\` 旁边即可
-（`ai\onnxruntime.dll` + `ai\migan.onnx` + `ai\ocr\` + `ai\win7\` 垫片，共约 50MB）。
+（`ai\onnxruntime.dll` + `ai\migan.onnx` + `ai\ocr\` + `ai\win7\` 垫片，
+共 30 个文件 / 约 59 MB）。
 
 **跑自检**：
 
 ```bat
-dist\PicTool.exe --selftest
+dist\Restoria.exe --selftest
 ```
 
 退出码 0 = 全部通过。更多诊断口见下文。
@@ -125,7 +130,8 @@ dist\PicTool.exe --selftest
 │   ├── Imaging/          纯图像算法（不依赖 UI）：清洁算子、增强、修复、归档
 │   ├── Ai/               可选 AI 叠加：ONNX 互操作、MI-GAN、OCR 方向裁判
 │   └── Ui/               界面与交互（唯一依赖 WinForms 的地方）
-├── assets/               图标（GDI+ 路径绘制的 SVG 源 + ico）与清单
+├── assets/               图标与清单。图标由 tools\IconGen.cs 用 GDI+ 路径几何绘制，
+│                         源码即唯一设计源（make_icon.bat 可重新生成所有尺寸）
 ├── tools/                构建与验证工具链
 │   ├── gate.py           门禁：自检 + 布局基线 + AI 产物 + 性能冒烟
 │   ├── check_resources.py 资源门禁（LockBits 配对）
@@ -157,8 +163,8 @@ Platform ──→ （无）
 
 ```bat
 build.bat                                    :: 编译
-dist\PicTool.exe --selftest                  :: ① 算法自检（退出码 0）
-dist\PicTool.exe --layout                    :: ② 布局快照（与基线逐行对比）
+dist\Restoria.exe --selftest                  :: ① 算法自检（退出码 0）
+dist\Restoria.exe --layout                    :: ② 布局快照（与基线逐行对比）
 python tools\check_resources.py --strict     :: ③ 资源门禁
 python tools\gate.py                         :: ④ 总门禁（含性能冒烟）
 ```
@@ -180,13 +186,24 @@ python tools\gate.py                         :: ④ 总门禁（含性能冒烟�
 
 ## 第三方素材与许可证
 
-- 本仓库代码：[MIT](LICENSE)
-- ONNX Runtime：微软 MIT 许可证（`ai\onnxruntime.dll`）
-- MI-GAN 模型：见模型发布方许可证（`ai\migan.onnx`）
-- PP-OCRv3 模型（OCR 方向裁判用）：Apache-2.0（`ai\ocr\`）
+本仓库代码以 [MIT](LICENSE) 发布。以下第三方组件随发布包分发，各保留其自身版权与许可证：
+
+| 组件 | 版本 | 版权 | 许可证 |
+|---|---|---|---|
+| ONNX Runtime（`ai\onnxruntime.dll`、`ai\win7\onnxruntime.dll`） | 1.14.1 | © Microsoft Corporation | MIT |
+| PP-OCRv3 检测/识别模型 + 字表（`ai\ocr\`） | PP-OCRv3 | © PaddlePaddle Authors | Apache-2.0 |
+| MI-GAN 修复模型（`ai\migan.onnx`） | 512, ICCV 2023 | © 2024 Picsart AI Research | MIT |
+| Win7 API-set 兼容垫片（`ai\win7\*.dll`） | — | Microsoft 前向器 | MIT |
+
+各组件的完整许可证文本与说明见 **[THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES)**。
+
+上述组件**仅**服务于可选的 AI 修复与印章 OCR。核心流水线（方向、纠偏、去噪、
+去渍、黑白电平、色彩、A4 输出）是纯 C# 实现，不含任何原生依赖，不需要 `ai/`
+目录也能完整运行。程序会先在子进程中探测 AI 运行时能否加载，失败时干净地关闭
+AI 功能，不影响主程序。
 
 ## 致谢
 
 - [ONNX Runtime](https://github.com/microsoft/onnxruntime) — 跨平台推理引擎
-- [MI-GAN](https://github.com/Picsart-AI-Research/MI-GAN) — 图像修复模型
+- [MI-GAN](https://github.com/Picsart-AI-Research/MI-GAN) — 图像修复模型（ICCV 2023）
 - [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR) — PP-OCRv3 检测/识别模型
