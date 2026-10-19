@@ -49,7 +49,7 @@ Both bundles include the optional AI assets and a Win7 compatibility layer. The 
 
 ## Other languages
 
-中文 · [日本語](docs/README-ja.md) · [Deutsch](docs/README-de.md) · [Français](docs/README-fr.md) · [Español](docs/README-es.md) · [Русский](docs/README-ru.md)
+[中文](docs/README-zh.md) · [日本語](docs/README-ja.md) · [Deutsch](docs/README-de.md) · [Français](docs/README-fr.md) · [Español](docs/README-es.md) · [Русский](docs/README-ru.md)
 
 ---
 
