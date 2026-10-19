@@ -124,7 +124,7 @@ if (Test-Path $docs) {
         if (Test-Path $p) { Copy-Item -LiteralPath $p -Destination (Join-Path $stage 'docs') -Force }
     }
 }
-foreach ($a in @('icon.svg', 'icon-preview.png')) {
+foreach ($a in @('icon-preview.png')) {
     $src = Join-Path $root ('assets\' + $a)
     if (Test-Path -LiteralPath $src) { Copy-Item -LiteralPath $src -Destination (Join-Path $stage 'docs') -Force }
 }

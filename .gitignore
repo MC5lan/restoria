@@ -1,10 +1,14 @@
 # 构建产物
 dist/
 *.pdb
+tools/*.exe
+tools/*.dll
+setup_build/
 
 # 日志与临时文件
 *.log
 *.tmp
+*.bak
 Thumbs.db
 desktop.ini
 
