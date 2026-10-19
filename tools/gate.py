@@ -21,6 +21,19 @@ import subprocess
 import sys
 import time
 
+# Force UTF-8 on stdout/stderr before anything prints.
+# Why this line exists: CI runs on an English Windows runner whose console code
+# page is cp1252, which cannot encode this script's Chinese output. Without it
+# the first print raises UnicodeEncodeError, the script dies with a traceback,
+# and the gate reports failure for a machine with nothing wrong with it --
+# worse than no gate, because it teaches people to ignore red builds.
+# errors='replace' keeps output flowing on a console that cannot show a glyph.
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEMP = os.environ.get('TEMP') or os.environ.get('TMP') or '/tmp'
 # 构建产物：build.bat 输出 PicTool.exe，再按 appname.txt 复制出本地化名字，两个都认

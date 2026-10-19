@@ -22,6 +22,20 @@ import os
 import re
 import sys
 
+# Force UTF-8 on stdout/stderr before anything prints.
+# Why this line exists: CI runs on an English Windows runner whose console code
+# page is cp1252, which cannot encode the Chinese report text. Without this, the
+# very first print raises UnicodeEncodeError, the script dies with a traceback,
+# and the gate reports failure for a machine that has nothing wrong with it --
+# which is worse than no gate, because it trains people to ignore red builds.
+# errors='replace' means even a console that cannot show a character still gets
+# output instead of an exception.
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, 'src')
 

@@ -25,6 +25,15 @@ onnx_ops.py — ONNX 模型算子兼容性扫描器（零依赖，纯 Python 解
 import os
 import sys
 
+# Force UTF-8 on stdout/stderr before anything prints: this report is in
+# Chinese, and an English Windows console (code page 1252) cannot encode it,
+# so the first print would raise UnicodeEncodeError and kill the scan.
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
+
 # ---------------------------------------------------------------- protobuf 解析
 # 只实现 ONNX 实际用到的 wire type：0=varint 1=64bit 2=length 5=32bit
 

@@ -19,6 +19,15 @@ import os
 import subprocess
 import sys
 
+# Force UTF-8 on stdout/stderr: this report is in Chinese and an English
+# Windows console (code page 1252) cannot encode it, so the first print would
+# raise UnicodeEncodeError and kill the check.
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
+
 DEFAULT_IN = r'D:\lama\_parallel\in'
 DEFAULT_WORK = r'D:\lama\_parallel'
 DEFAULT_EXE = r'D:\lama\dist\PicTool.exe'
