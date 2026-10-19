@@ -38,17 +38,24 @@ jobs:
           dist\PicTool.exe --layout
           if errorlevel 1 (exit /b 1)
 
+      - name: Resource gate (LockBits pairing)
+        shell: cmd
+        run: |
+          rem Unbalanced LockBits/UnlockBits is the one class of bug that
+          rem corrupts a bitmap in place and can still pass every functional
+          rem test, so it gets its own gating step.
+          python tools\check_resources.py --strict
+          if errorlevel 1 (exit /b 1)
+
       - name: Full gate (self-test + layout + AI artifact + performance)
         shell: cmd
         run: |
-          rem The four gates all execute here, but the run is not allowed to
-          rem fail the job. Two reasons: the performance baseline was recorded
-          rem on the author's machine and means nothing here, and the AI
-          rem artifact gate depends on the runner having a usable ONNX
-          rem runtime. What this step is really checking is that the gates
-          rem RUN rather than skip -- the previous version of the script
-          rem reported success without doing anything.
-          rem The above two steps (--selftest, --layout) do gate the job.
+          rem The four gates all execute here. The run is allowed to fail the
+          rem job on a real regression, but a performance verdict on a runner
+          rem is reported as inconclusive rather than failed: the baseline was
+          rem recorded on the author's machine and says nothing about the CPU
+          rem GitHub hands out. --selftest, --layout and the resource gate are
+          rem the steps that block a bad commit.
           set PICTOOL_NO_PAUSE=1
           python tools\gate.py
         continue-on-error: true

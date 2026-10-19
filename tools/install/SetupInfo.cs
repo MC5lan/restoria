@@ -12,7 +12,7 @@ namespace PicToolSetup
     /// <summary>安装/卸载知道的产品信息（与主程序 AppInfo 对齐；此处不引用主程序源）。</summary>
     static class SetupInfo
     {
-        public const string Version = "1.5.6";
+        public const string Version = "1.5.7";
         public const string Name = "Restoria";
         public const string Publisher = "Restoria";
         public const string Copyright = "Copyright (c) 2026 MC5lan. Licensed under MIT.";

@@ -15,7 +15,7 @@ namespace PicToolSetup
         public const string Text =
 @"Restoria · MIT 许可证
 
-版本：1.5.6
+版本：1.5.7
 
 本软件以 MIT 许可证（MIT License）开源发布。
 

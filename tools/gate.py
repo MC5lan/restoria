@@ -270,14 +270,14 @@ def gate_perf(regen=False):
         RESULTS.append(('性能', True, '基线已建 %d ms' % ms))
         return
 
-    # 跨机器的基线没有可比性：i5-7500 上的 3956 ms 放到别的 CPU 上毫无意义，
+    # 跨机器的基线没有可比性：本机录的毫秒数放到别的 CPU 上毫无意义，
     # 直接拿来判 FAIL 会误报，判 PASS 则是把别人的机器当作自己的。
-    # 明确告知并要求重建，而不是悄悄放行。
+    # 这是"无法判定"，不是"失败" —— 判为无结论（○），并说明该怎么得到结论。
     tag = machine_tag()
     if base_tag and tag and base_tag != tag:
-        say('  ⚠️ 基线来自另一台机器（%s），当前是 %s' % (base_tag, tag))
-        say('     性能基线只在本机有意义。请跑 --regen-perf 按当前机器重建。')
-        RESULTS.append(('性能', False, '基线跨机器（%s → %s），需 --regen-perf' % (base_tag, tag)))
+        say('  ○ 无结论：基线来自另一台机器（%s），当前是 %s' % (base_tag, tag))
+        say('     性能基线只在本机有意义。要在这台机器上得到结论，请跑 --regen-perf。')
+        RESULTS.append(('性能', 'skip', '基线跨机器（%s → %s），需 --regen-perf' % (base_tag, tag)))
         return
 
     say('  本次 %d ms vs 基线 %d ms（FAIL 线 +%d%%）   总耗时 %.1fs'
@@ -330,10 +330,22 @@ def main():
     print()
     print('== 结论 ==')
     allok = True
+    inconclusive = []
     for name, ok, detail in RESULTS:
-        print('  %s %-6s %s' % ('✅' if ok else '❌', name, detail))
-        allok = allok and ok
+        #三态：通过 / 失败 / 无结论（判据在这台机器上不成立，不能算失败）
+        # 无结论项用 ○ 标记，不让"无法判定"看起来像"有问题"，
+        # 也不让它悄悄变成通过。
+        if ok == 'skip':
+            print('  ○ %-6s %s（无结论）' % (name, detail))
+            inconclusive.append(name)
+        else:
+            print('  %s %-6s %s' % ('✅' if ok else '❌', name, detail))
+            allok = allok and ok
     print()
+    if allok and inconclusive:
+        print('门禁通过，但有 %d 项无结论（%s）—— 这些判据在当前机器上不适用，'
+              '请看上面说明。' % (len(inconclusive), '、'.join(inconclusive)))
+        return 0
     print('门禁' + ('全部通过。' if allok else '有未通过项，请看上面明细。'))
     return 0 if allok else 1
 

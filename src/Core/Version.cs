@@ -9,9 +9,9 @@
 // 各版本的功能与修复记录见 CHANGELOG.md。
 using System.Reflection;
 
-[assembly: AssemblyVersion("1.5.6.0")]
-[assembly: AssemblyFileVersion("1.5.6.0")]
-[assembly: AssemblyInformationalVersion("1.5.6")]
+[assembly: AssemblyVersion("1.5.7.0")]
+[assembly: AssemblyFileVersion("1.5.7.0")]
+[assembly: AssemblyInformationalVersion("1.5.7")]
 
 [assembly: AssemblyTitle("Restoria")]
 [assembly: AssemblyProduct("Restoria")]
@@ -23,7 +23,7 @@ namespace PicTool
 {
     public static class AppInfo
     {
-        public const string Version = "1.5.6";
+        public const string Version = "1.5.7";
         public const string Name = "Restoria";
         public const string Title = Name + " " + Version;   // 窗口标题（含版本号）
         // 发行版元信息（用于安装器/卸载入口/关于页）

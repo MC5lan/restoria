@@ -33,7 +33,7 @@ $UninstExe = 'Uninstall.exe'
 $AppId = 'PicToolArchiveSuite'
 
 if ([string]::IsNullOrEmpty($Dir)) { $Dir = Join-Path $env:TEMP 'pictool-e2e-inst' }
-$pkg = Join-Path $root '发布包\Restoria-安装.exe'
+$pkg = Join-Path $root '发布包\Restoria-setup.exe'
 
 W '============================================================'
 W (' 端到端冒烟    ' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'))

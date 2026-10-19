@@ -1,9 +1,9 @@
 ﻿# make_package.ps1 — 生成发行包（自研单文件安装程序，不再用 WinRAR SFX）
 #
 # 产物：
-#   发布包\Restoria-安装.exe    ← 单文件安装程序（双击 → 白底解压 → 协议 → 向导）
-#   发布包\Restoria-安装包.zip  ← 免安装压缩包（解压后双击 setup-boot.exe）
-#   发布包\Restoria-安装\       ← 上面两个的主体内容（舞台目录，留着方便核对）
+#   发布包\Restoria-setup.exe      ← 单文件安装程序（双击 → 白底解压 → 协议 → 向导）
+#   发布包\Restoria-portable.zip   ← 免安装压缩包（解压后双击 setup-boot.exe）
+#   发布包\Restoria-install\       ← 上面两个的主体内容（舞台目录，留着方便核对）
 #
 # 用法：powershell -File tools\make_package.ps1
 #       powershell -File tools\make_package.ps1 -SkipSign     # 跳过签名（排查用）
@@ -16,9 +16,17 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Definition)
 Set-Location $root
 $pack = Join-Path $root '发布包'
-$stage = Join-Path $pack 'Restoria-安装'
-$outExe = Join-Path $pack 'Restoria-安装.exe'
-$zip = Join-Path $pack 'Restoria-安装包.zip'
+# ---------- 资产命名 ----------
+# 唯一出处。README 的下载表、release 正文、发布脚本都引用这两个名字，
+# 改动必须四处同步。名字用英文：README 是英文主版本，Release 附件名会出现在
+# GitHub 文件列表和用户的下载记录里，中文名在部分系统和浏览器下载框里会乱码。
+$AssetInstaller = 'Restoria-setup.exe'
+$AssetPortable = 'Restoria-portable.zip'
+$StageDir      = 'Restoria-install'
+
+$stage = Join-Path $pack $StageDir
+$outExe = Join-Path $pack $AssetInstaller
+$zip = Join-Path $pack $AssetPortable
 
 # Log 用 Write-Output（不是 Write-Host）：这样 `... *>&1 | Out-File` 能把进度落盘，
 # 出问题时能看到卡在哪一步。Write-Host 只进宿主，落不了盘。
@@ -33,6 +41,12 @@ function Retire($path) {
     $bak = $path + '_old-' + $stamp
     try { Rename-Item -LiteralPath $path -NewName (Split-Path -Leaf $bak) } catch { }
     Log ('  （旧产物改名避让：' + (Split-Path -Leaf $bak) + '）')
+}
+
+# 旧资产名退休。命名改过一轮，脚本和用户的收藏可能还指向旧文件名；
+# 留着两个名字的安装包只会让人装错版本。
+foreach ($old in @('Restoria-安装.exe', 'Restoria-安装包.zip', 'Restoria-安装')) {
+    Retire (Join-Path $pack $old)
 }
 
 # ---------- 1/5 编译 ----------
@@ -145,7 +159,7 @@ Restoria —— 安装与使用（老师/管理员版）
 
 一、怎么装（在目标机上）
   方式 A：单文件安装程序（推荐）
-   1. 把「Restoria-安装.exe」拷到目标机，双击。
+   1. 把「Restoria-setup.exe」拷到目标机，双击。
    2. 会弹一次系统权限确认（UAC）—— 这是正规安装程序的正常行为，点「是」。
    3. 先看许可协议，点「我接受并安装」。
    4. 出现白底安装窗口，顶部四步指示：检查环境 → 选择位置 → 正在安装 → 完成。
@@ -156,7 +170,7 @@ Restoria —— 安装与使用（老师/管理员版）
       点「打开程序」即可启动；桌面和开始菜单都已生成快捷方式。
 
   方式 B：解压安装包（适用于 Win7 上没装 .NET 4.x 的机器）
-   1. 解压「Restoria-安装包.zip」到任意文件夹。
+   1. 解压「Restoria-portable.zip」到任意文件夹。
    2. 【重要】Win7 若没装 .NET Framework 4.x，双击安装程序会没有任何反应。
       这时先双击文件夹里的  ndp48-x86-x64-allos-enu.exe  装好 .NET Framework 4.8
       （装完建议重启一次），再双击 setup-boot.exe 安装。

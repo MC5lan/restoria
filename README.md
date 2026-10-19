@@ -12,6 +12,24 @@ Orientation detection, deskew, denoise, stain removal, black/white level and ton
 
 ---
 
+## What it does to a page
+
+Whole page, standard pipeline — grey paper, uneven lighting and dust go in; white paper and black type come out, laid out on A4:
+
+![Before and after: the standard pipeline turning a grey, speckled scan into a clean A4 archival page](docs/images/pipeline.png)
+
+Close-up of the same page. Dust and grey shading are gone; every stroke of text survives, and the red seal is still red rather than being flattened to black:
+
+![Close-up before and after: dust and shading removed, characters and the red seal preserved](docs/images/detail.png)
+
+A page fed in tilted is straightened as part of the same run:
+
+![Before and after: a page tilted by about three degrees is straightened by the archive pipeline](docs/images/deskew.png)
+
+> These images are generated from a synthetic fixture by `tools\MakeDemo.bat`, not from real archive material — the archive samples this tool is used on are confidential. The fixture is the same deterministic page the test gates use, so the pictures cannot drift from what the code actually does.
+
+---
+
 ## Download
 
 Releases are published on the [Releases page](https://github.com/MC5lan/restoria/releases).

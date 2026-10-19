@@ -51,14 +51,18 @@ function LnkTarget([string]$p) {
 }
 
 W '============================================================'
-W (' Restoria 1.5.6 发行验收    ' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'))
+# 版本号从源文件读，不写死：写死的话每次升版都会漏改这里，
+# 验收报告上的版本就会和实际打包的二进制对不上。
+$vline = Select-String -Path (Join-Path $root 'src\Core\Version.cs') -Pattern 'public const string Version = "([^"]+)"' | Select-Object -First 1
+$vnum = if ($vline) { $vline.Matches[0].Groups[1].Value } else { '(未读到)' }
+W (' Restoria ' + $vnum + ' 发行验收    ' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'))
 W (' 机器: ' + $env:COMPUTERNAME + '   用户: ' + $env:USERNAME)
 W '============================================================'
 
 # ---------- 1. 安装包本体 ----------
 W ''
 W '[1] 安装包'
-$pkg = Join-Path $root '发布包\Restoria-安装.exe'
+$pkg = Join-Path $root '发布包\Restoria-setup.exe'
 $pkgOk = Test-Path -LiteralPath $pkg
 Chk '安装包存在' $pkgOk $pkg
 if ($pkgOk) {
@@ -91,7 +95,7 @@ if ($pkgOk) {
             $pm = [Text.Encoding]::ASCII.GetString($head, 0, 8)
             $cnt = [BitConverter]::ToInt32($head, 8)
             Chk '载荷容器头 PTPK0001' ($pm -eq 'PTPK0001') ('magic=' + $pm + '   条目数=' + $cnt)
-            $stageDir = Join-Path $root '发布包\Restoria-安装'
+            $stageDir = Join-Path $root '发布包\Restoria-install'
             if (Test-Path -LiteralPath $stageDir) {
                 # 载荷会跳过几个文件（pack_payload.ps1 的 $skip：旧链路脚本 + setup-boot.exe 自己），
                 # 所以条目数允许比目录文件数少 1。

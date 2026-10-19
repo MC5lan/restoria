@@ -5,9 +5,9 @@
 // 改版本时三处一起改（build_setup.ps1 会校验，不一致直接报错）。
 using System.Reflection;
 
-[assembly: AssemblyVersion("1.5.6.0")]
-[assembly: AssemblyFileVersion("1.5.6.0")]
-[assembly: AssemblyInformationalVersion("1.5.6")]
+[assembly: AssemblyVersion("1.5.7.0")]
+[assembly: AssemblyFileVersion("1.5.7.0")]
+[assembly: AssemblyInformationalVersion("1.5.7")]
 [assembly: AssemblyTitle("Restoria 安装程序")]
 [assembly: AssemblyProduct("Restoria 安装程序")]
 [assembly: AssemblyDescription("Restoria 单文件安装程序")]
