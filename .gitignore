@@ -1,7 +1,6 @@
 # 构建产物
 dist/
 发布包/
-*.pdb
 tools/*.exe
 tools/*.dll
 setup_build/

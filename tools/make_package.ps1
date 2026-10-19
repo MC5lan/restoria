@@ -70,6 +70,14 @@ Copy-Item -LiteralPath $exe -Destination $stage -Force
 $cfg = Join-Path $root 'dist\Restoria.exe.config'
 if (Test-Path $cfg) { Copy-Item -LiteralPath $cfg -Destination $stage -Force }
 
+# 调试符号：跟着主程序一起装。用户报错时我们只要日志 + 这个 pdb 就能把
+# 优化过的堆栈还原成"文件:行"，而不是一串没有行号的地址。
+$pdb = Join-Path $root 'dist\Restoria.pdb'
+if (Test-Path $pdb) {
+    Copy-Item -LiteralPath $pdb -Destination $stage -Force
+    Log ('  调试符号: Restoria.pdb (' + [Math]::Round((Get-Item $pdb).Length / 1KB, 1) + ' KB)')
+}
+
 # 卸载程序：装进安装目录，控制面板的"卸载"指向它
 Copy-Item -LiteralPath $uninst -Destination (Join-Path $stage 'Uninstall.exe') -Force
 Log ('  卸载程序: Uninstall.exe (' + [Math]::Round((Get-Item $uninst).Length / 1KB, 1) + ' KB)')

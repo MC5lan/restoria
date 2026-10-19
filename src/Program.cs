@@ -208,12 +208,18 @@ namespace PicTool
                 // 两个坑：① 探针会写恢复快照，非正常退出留下会话后，下次启动
                 // OnShown 的 CheckRecovery 会弹"要恢复吗"卡死无头运行 —— 启动前预清；
                 // ② Close 后偶发退出码 1（恢复 timer 退出竞态）—— 自检口直接 Environment.Exit(0)。
+                //
+                // 预清范围：只清**本次探针自己的沙箱**（%TEMP% 下的独立目录），
+                // 绝不碰 %LOCALAPPDATA%\PicTool\recovery —— 那里是真实用户的
+                // 未完成恢复快照，发布版 exe 有和用户一样的权限，删了就找不回来。
                 try
                 {
-                    string lr = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PicTool", "recovery");
-                    if (Directory.Exists(lr))
-                        foreach (string dd in Directory.GetDirectories(lr, "s-*"))
-                            try { Directory.Delete(dd, true); } catch { }
+                    string sandbox = Path.Combine(Path.GetTempPath(), "PicTool-probe-recovery");
+                    Environment.SetEnvironmentVariable("PICTOOL_RECOVERY_ROOT", sandbox);
+                    if (Directory.Exists(sandbox))
+                    {
+                        try { Directory.Delete(sandbox, true); } catch { }
+                    }
                 }
                 catch { }
                 MainForm f = new MainForm(null);
@@ -234,12 +240,15 @@ namespace PicTool
             {
                 // 诊断用：笔刷/橡皮光标圈自检（重画后验证）。
                 // 报告 %TEMP%\PicTool-cursortest.txt、画布截图 %TEMP%\PicTool-cursor.png。
+                // 同 --undotest：恢复区重定向到 %TEMP% 沙箱，不碰真实用户的恢复快照。
                 try
                 {
-                    string lr = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PicTool", "recovery");
-                    if (Directory.Exists(lr))
-                        foreach (string dd in Directory.GetDirectories(lr, "s-*"))
-                            try { Directory.Delete(dd, true); } catch { }
+                    string sandbox = Path.Combine(Path.GetTempPath(), "PicTool-probe-recovery");
+                    Environment.SetEnvironmentVariable("PICTOOL_RECOVERY_ROOT", sandbox);
+                    if (Directory.Exists(sandbox))
+                    {
+                        try { Directory.Delete(sandbox, true); } catch { }
+                    }
                 }
                 catch { }
                 MainForm f = new MainForm(null);

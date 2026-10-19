@@ -60,9 +60,21 @@ namespace PicTool
             if (session != null) return;
             try
             {
-                string baseDir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                if (baseDir == null || baseDir.Length == 0) baseDir = Path.GetTempPath();
-                root = Path.Combine(Path.Combine(baseDir, "PicTool"), "recovery");
+                // 测试隔离：设了 PICTOOL_RECOVERY_ROOT 就把恢复区整体挪到那里。
+                // --undotest / --cursortest 这类探针会预清恢复区，如果和真实用户
+                // 共用目录就会删掉人家未完成的恢复快照。测试钩子必须有自己的沙箱。
+                string overrideRoot = null;
+                try { overrideRoot = Environment.GetEnvironmentVariable("PICTOOL_RECOVERY_ROOT"); } catch { }
+                if (!string.IsNullOrEmpty(overrideRoot))
+                {
+                    root = overrideRoot;
+                }
+                else
+                {
+                    string baseDir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                    if (baseDir == null || baseDir.Length == 0) baseDir = Path.GetTempPath();
+                    root = Path.Combine(Path.Combine(baseDir, "PicTool"), "recovery");
+                }
                 Directory.CreateDirectory(root);
             }
             catch
