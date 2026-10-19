@@ -355,14 +355,53 @@ namespace PicTool
             // 具体的值不用另存：Main 开头的 WriteEnvReport() 已经写到
             // %TEMP%\PicTool-env.txt，内容比这一行详细得多。
             sb.AppendLine("环境: (随机器变化，详见 PicTool-env.txt)");
+            WriteLayoutDiag();
             DumpCtrl(this, sb, 0);
             string p = Path.Combine(Path.GetTempPath(), "PicTool-layout.txt");
             try { File.WriteAllText(p, sb.ToString(), System.Text.Encoding.UTF8); } catch { }
             Close();
         }
 
-        void DumpCtrl(Control parent, System.Text.StringBuilder sb, int depth)
+        // 布局诊断：把"会随机器变的东西"单独写一份，不放进快照。
+        // 存在的理由：CI 上布局快照与基线不一致时，最可能的原因是这台机器
+        // 缺少界面字体（Theme.PickFace 按 微软雅黑 → Segoe UI 回退），
+        // 而 PageHead 的说明标签是 AutoSize —— 字体度量一变，它下面所有控件
+        // 都跟着下移。没有这份记录，只能对着几百行差异猜。
+        void WriteLayoutDiag()
         {
+            try
+            {
+                System.Text.StringBuilder d = new System.Text.StringBuilder();
+                d.AppendLine("界面字体 = " + Theme.FaceName + "   （候选: Microsoft YaHei UI / Microsoft YaHei / Segoe UI）");
+                d.AppendLine("系统DPI  = " + this.DeviceDpi);
+                d.AppendLine();
+                d.AppendLine("AutoSize 控件（高度随字体度量变化，是快照跨机器不一致的唯一来源）：");
+                CollectAutoSize(this, d, 0);
+                File.WriteAllText(Path.Combine(Path.GetTempPath(), "PicTool-layout-diag.txt"),
+                                  d.ToString(), System.Text.Encoding.UTF8);
+            }
+            catch { }
+        }
+
+        void CollectAutoSize(Control parent, System.Text.StringBuilder d, int depth)
+        {
+            for (int i = 0; i < parent.Controls.Count; i++)
+            {
+                Control c = parent.Controls[i];
+                if (c.AutoSize)
+                {
+                    string txt = "";
+                    try { txt = c.Text; } catch { }
+                    if (txt.Length > 20) txt = txt.Substring(0, 20);
+                    d.AppendLine("  " + new string(' ', depth * 2) + c.GetType().Name +
+                                 " height=" + c.Height + " width=" + c.Width +
+                                 " text='" + txt + "'");
+                }
+                if (depth < 4) CollectAutoSize(c, d, depth + 1);
+            }
+        }
+
+        void DumpCtrl(Control parent, System.Text.StringBuilder sb, int depth)        {
             string pad = new string(' ', depth * 2);
             for (int i = 0; i < parent.Controls.Count; i++)
             {

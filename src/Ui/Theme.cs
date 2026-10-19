@@ -135,6 +135,11 @@ namespace PicTool
 
         // ---------- 字体（中文优先微软雅黑，缺失时自动回退） ----------
         static readonly string Face = PickFace();
+
+        // 实际选中的界面字体名。布局诊断要把它记下来：跨机器快照不一致时，
+        // 第一个要排除的就是"这台机器没有微软雅黑，回退到了别的字体"。
+        public static string FaceName { get { return Face; } }
+
         public static readonly Font F10 = new Font(Face, 7.5f);                     // 约 10px（导航小字）
         public static readonly Font F11 = new Font(Face, 8.25f);                    // 约 11px
         public static readonly Font F12 = new Font(Face, 9f);                       // 约 12px

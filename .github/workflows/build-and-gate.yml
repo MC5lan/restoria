@@ -1,9 +1,9 @@
 name: build and gate
 
-# A gate that only the author can run is decoration. Two steps here fail the
-# job outright (--selftest and --layout); the full gate runs for its output but
-# is allowed to fail, because the performance baseline recorded on the author's
-# machine says nothing about a GitHub runner.
+# A gate that only the author can run is decoration. Three steps here fail the
+# job outright: --selftest, --layout-check and the resource scanner. The full
+# gate runs for its report but is allowed to fail, because the performance
+# baseline recorded on the author's machine says nothing about a GitHub runner.
 on:
   push:
     branches: [main]
@@ -33,21 +33,62 @@ jobs:
           if errorlevel 1 (exit /b 1)
 
       - name: Layout snapshot must match the baseline
-        shell: cmd
+        shell: pwsh
         run: |
-          rem --layout-check, not --layout. --layout only exports the snapshot and
-          rem always exits 0, so the errorlevel test below it never fired and this
-          rem step was a green shell that checked nothing. --layout-check compares
-          rem against tools\golden-layout.txt and exits 1 on any difference.
-          rem
-          rem The snapshot's environment line used to contain RAM size and core
-          rem count, which differ per machine, so the comparison could never pass
-          rem off the author's box. It is now a fixed string; the real values go
-          rem to %TEMP%\PicTool-env.txt.
-          dist\PicTool.exe --layout-check
-          if errorlevel 1 (exit /b 1)
+          # --layout-check, not --layout. --layout only exports the snapshot and
+          # always exits 0, so an errorlevel test below it never fired and this
+          # step was a green shell that checked nothing. --layout-check compares
+          # against tools\golden-layout.txt and exits 1 on any difference.
+          #
+          # The difference lines go to stderr. Step logs need authentication to
+          # download, annotations do not, so every difference is also emitted as
+          # an ::error:: annotation. A gate whose reason for failing cannot be
+          # read is only marginally better than one that never fails.
+          #
+          # The font check matters because the snapshot's only font-dependent
+          # control is the AutoSize description label in PageHead: if the runner
+          # lacks the UI font, that label measures differently and pushes every
+          # control below it. Printing which faces exist turns "layout changed"
+          # into either "layout changed" or "the runner is missing a font".
+
+          $out = & dist\PicTool.exe --layout-check 2>&1 | ForEach-Object { "$_" }
+          $rc = $LASTEXITCODE
+          $out | ForEach-Object { Write-Host $_ }
+
+          if ($rc -ne 0) {
+            Write-Host ""
+            Write-Host "=== fonts available on this runner ==="
+            try {
+              Add-Type -AssemblyName System.Drawing
+              $faces = [System.Drawing.FontFamily]::Families |
+                Where-Object { $_.Name -match 'YaHei|Yahei|SimSun|SimHei|Noto|Segoe UI$' } |
+                ForEach-Object { $_.Name }
+              if ($faces) { $faces | ForEach-Object { Write-Host ("  " + $_) } }
+              else { Write-Host "  (none of the UI faces are installed)" }
+            }
+            catch { Write-Host ("  font enumeration failed: " + $_.Exception.Message) }
+
+            Write-Host ""
+            Write-Host "=== layout diagnostics (written by the program) ==="
+            $diag = Join-Path $env:TEMP 'PicTool-layout-diag.txt'
+            if (Test-Path $diag) { Get-Content $diag -Encoding UTF8 | ForEach-Object { Write-Host $_ } }
+            else { Write-Host "  (no diagnostic file)" }
+
+            Write-Host ""
+            Write-Host "=== difference detail ==="
+            $out |
+              Where-Object { $_ -match '不一致|行数|基线|当前:' } |
+              Select-Object -First 12 |
+              ForEach-Object { Write-Host ("::error::" + $_) }
+            exit 1
+          }
 
       - name: Resource gate (LockBits pairing)
+        # if: always() so one failing gate does not hide the others. A run that
+        # reports everything at once is worth more than one that reveals one
+        # problem per push, especially when the first failure turns out to be
+        # environmental.
+        if: always()
         shell: cmd
         run: |
           rem Unbalanced LockBits/UnlockBits is the one class of bug that
@@ -57,6 +98,8 @@ jobs:
           if errorlevel 1 (exit /b 1)
 
       - name: Full gate (self-test + layout + AI artifact + performance)
+        # See the note on the resource gate: report everything in one run.
+        if: always()
         shell: cmd
         run: |
           rem The four gates all execute here. The run is allowed to fail the
