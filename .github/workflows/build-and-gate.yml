@@ -1,7 +1,9 @@
 name: build and gate
 
-# 门禁只有别人能跑才叫门禁。本地跑过的结果不代表 CI 会过 ——
-# 尤其是 CI 机器与开发机的性能差异，所以性能门禁在 CI 上按"重建基线"处理。
+# A gate that only the author can run is decoration. Two steps here fail the
+# job outright (--selftest and --layout); the full gate runs for its output but
+# is allowed to fail, because the performance baseline recorded on the author's
+# machine says nothing about a GitHub runner.
 on:
   push:
     branches: [main]
@@ -39,24 +41,39 @@ jobs:
       - name: Full gate (self-test + layout + AI artifact + performance)
         shell: cmd
         run: |
+          rem The four gates all execute here, but the run is not allowed to
+          rem fail the job. Two reasons: the performance baseline was recorded
+          rem on the author's machine and means nothing here, and the AI
+          rem artifact gate depends on the runner having a usable ONNX
+          rem runtime. What this step is really checking is that the gates
+          rem RUN rather than skip -- the previous version of the script
+          rem reported success without doing anything.
+          rem The above two steps (--selftest, --layout) do gate the job.
           set PICTOOL_NO_PAUSE=1
           python tools\gate.py
-          rem gate.py exits non-zero on any failure; performance is compared
-          rem against a baseline recorded on another machine, so it is
-          rem expected to fail here -- the real value of this step is that the
-          rem self-test, layout and AI-artifact gates genuinely execute.
         continue-on-error: true
 
-      - name: Upload gate reports
+      - name: Collect gate reports
         if: always()
         shell: cmd
         run: |
-          if not exist "%TEMP%\PicTool-selftest.txt" exit /b 0
+          rem Copy whatever reports exist, one at a time. A report is absent
+          rem whenever its mode did not run (no AI runtime on the runner means
+          rem no ai-fill report), and `copy` of a missing file sets a non-zero
+          rem exit code, which would fail the whole job over a missing log.
+          rem An earlier version did `if not exist ... exit /b 0`, which also
+          rem skipped the remaining copies, and then let the last failed copy
+          rem decide the step result.
           mkdir reports 2>nul
-          copy /y "%TEMP%\PicTool-selftest.txt" reports\selftest.txt
-          copy /y "%TEMP%\PicTool-layout.txt"   reports\layout.txt
-          copy /y "%TEMP%\PicTool-ai-fill.txt"  reports\ai-fill.txt
-          copy /y "%TEMP%\PicTool-bench.txt"    reports\bench.txt
+          for %%f in (selftest layout ai-fill bench) do (
+            if exist "%TEMP%\PicTool-%%f.txt" (
+              copy /y "%TEMP%\PicTool-%%f.txt" "reports\%%f.txt" >nul
+              echo     collected %%f.txt
+            ) else (
+              echo     no %%f.txt on this runner
+            )
+          )
+          exit /b 0
 
       - name: Upload reports as artifact
         if: always()
