@@ -127,6 +127,18 @@ namespace PicTool
                 try { File.WriteAllText(Path.Combine(Path.GetTempPath(), "PicTool-bench.txt"), rep, System.Text.Encoding.UTF8); } catch { }
                 return;
             }
+            if (startPath == "--make-fixture")
+            {
+                // 导出确定性合成测试页，供门禁与评测集使用。
+                // 门禁的 AI 产物与性能冒烟都需要一张"固定测试页"；以前靠仓库外
+                // 手工放置的 _probe\doc_test.png，别人 clone 下来没有，门禁只能
+                // 跳过（skip 被当成通过）。改成由本程序生成，入库的那张与
+                // --bench 用的是同一个 Fixture()，不存在漂移。
+                string outPath = (args.Length > 1) ? args[1] : Path.Combine("_probe", "doc_test.png");
+                string rep = Bench.ExportFixture(outPath);
+                try { File.WriteAllText(Path.Combine(Path.GetTempPath(), "PicTool-fixture.txt"), rep, System.Text.Encoding.UTF8); } catch { }
+                return;
+            }
             if (startPath == "--skew-test")
             {
                 // 诊断用：在真实样本上验证倾斜检测的"黑边保险" ——

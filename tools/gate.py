@@ -33,10 +33,37 @@ if not os.path.exists(EXE):
         if _n:
             EXE = os.path.join(ROOT, 'dist', _n)
 GOLD = os.path.join(ROOT, 'tools', 'golden-layout.txt')
+TEST_IMG = os.path.join(ROOT, '_probe', 'doc_test.png')
 
 R_SELFTEST = os.path.join(TEMP, 'PicTool-selftest.txt')
 R_LAYOUT = os.path.join(TEMP, 'PicTool-layout.txt')
 R_AIFILL = os.path.join(TEMP, 'PicTool-ai-fill.txt')
+
+
+def ensure_test_img():
+    """返回固定测试页路径；仓库里没有就现场生成一份。
+
+    为什么必须这样：AI 产物门禁与性能冒烟门禁都需要一张**固定**的测试页。
+    以前这份图是手工放在仓库外的 `_probe\\doc_test.png`，从没进过版本库，
+    于是别人 clone 下来跑门禁时两道直接"跳过"，而跳过被记成通过 ——
+    门禁在最需要它的时候变成了装饰品。
+
+    现在这张图入库了（`--make-fixture` 确定性生成，8bpp 灰阶，约 150KB），
+    兜底生成是为了防止谁在改动中误删它。真生成不出来才判失败，不再静默跳过。
+    """
+    if os.path.exists(TEST_IMG):
+        return TEST_IMG
+    say('  固定测试页缺失，正在用 --make-fixture 现场生成…')
+    try:
+        subprocess.call([EXE, '--make-fixture', TEST_IMG],
+                        cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except Exception as ex:
+        say('  生成失败：' + str(ex))
+    if os.path.exists(TEST_IMG):
+        say('  已生成：%s（%.0f KB）' % (
+            os.path.relpath(TEST_IMG, ROOT), os.path.getsize(TEST_IMG) / 1024.0))
+        return TEST_IMG
+    return None
 
 QUIET = '--quiet' in sys.argv
 RESULTS = []
@@ -146,10 +173,10 @@ def gate_layout(regen=False):
 # ---------------------------------------------------------------- AI 产物
 def gate_aifill():
     say('== 门禁 3/4  AI 产物 ==')
-    test = os.path.join(ROOT, '_probe', 'doc_test.png')
-    if not os.path.exists(test):
-        say('  跳过：找不到测试图 ' + os.path.relpath(test, ROOT))
-        RESULTS.append(('AI产物', True, '跳过（无测试图）'))
+    test = ensure_test_img()
+    if test is None:
+        say('  失败：固定测试页不存在，且无法现场生成（跑 build.bat 后重试）')
+        RESULTS.append(('AI产物', False, '缺固定测试页'))
         return
     out = os.path.join(TEMP, 'PicTool-ai-gate.png')
     args = ['--ai-fill', '_probe' + os.sep + 'doc_test.png', out, '200', '700', '900', '280']
@@ -181,11 +208,26 @@ PERF_TOLERANCE = 1.15          # 比基线慢 15% 以上 = FAIL
 PERF_FAST_SUSPECT = 0.70       # 比基线快 30% 以上 = 可疑（可能有步骤没跑），提示但不判失败
 
 
+def machine_tag():
+    """粗粒度机器标识：写进性能基线文件，用来判断基线是否来自本机。
+
+    不用 CPU 型号（太敏感，换个后继架构就全废），只看位数与核数 ——
+    目的只是"明显不是同一台机器"就提示重建，不是做绝对性能判定。
+    """
+    try:
+        import platform
+        bits = 64 if platform.architecture()[0] == '64bit' else 32
+        return '%s-bit/%dcpu' % (bits, os.cpu_count() or 1)
+    except Exception:
+        return 'unknown'
+
+
 def gate_perf(regen=False):
     say('== 门禁 4/4  性能冒烟 ==')
-    if not os.path.exists(PERF_TEST_IMG):
-        say('  跳过：找不到固定测试页 ' + os.path.relpath(PERF_TEST_IMG, ROOT))
-        RESULTS.append(('性能', True, '跳过（无固定测试页）'))
+    perf_img = ensure_test_img()
+    if perf_img is None:
+        say('  失败：固定测试页不存在，且无法现场生成（跑 build.bat 后重试）')
+        RESULTS.append(('性能', False, '缺固定测试页'))
         return
 
     # 跑 2 次取最小值：min 对后台抖动最稳（机器忙时也接近真实性能）
@@ -209,16 +251,33 @@ def gate_perf(regen=False):
     ms = int(min(times) * 1000)
 
     base = None
+    base_tag = ''
     if os.path.exists(PERF_BASE) and not regen:
         try:
-            base = int(io.open(PERF_BASE, encoding='ascii').read().strip())
-        except (ValueError, OSError):
+            raw = io.open(PERF_BASE, encoding='utf-8').read().strip()
+            # 基线文件第一行是毫秒数，第二行（可选）是建基线时的机器标识。
+            # 没有标识的老格式照样能读，只是跨机器时判据不可信 —— 见下面 tag 比对。
+            lines = [l for l in raw.splitlines() if l.strip()]
+            base = int(lines[0].strip())
+            base_tag = lines[1].strip() if len(lines) > 1 else ''
+        except (ValueError, IndexError, OSError):
             base = None
 
     if base is None:
-        io.open(PERF_BASE, 'w').write(str(ms))
+        io.open(PERF_BASE, 'w', encoding='utf-8', newline='\n').write(
+            '%d\n%s\n' % (ms, machine_tag()))
         say('  ✅ 已建基线: %d ms（固定测试页 2 次取最小）   总耗时 %.1fs' % (ms, sum(times)))
         RESULTS.append(('性能', True, '基线已建 %d ms' % ms))
+        return
+
+    # 跨机器的基线没有可比性：i5-7500 上的 3956 ms 放到别的 CPU 上毫无意义，
+    # 直接拿来判 FAIL 会误报，判 PASS 则是把别人的机器当作自己的。
+    # 明确告知并要求重建，而不是悄悄放行。
+    tag = machine_tag()
+    if base_tag and tag and base_tag != tag:
+        say('  ⚠️ 基线来自另一台机器（%s），当前是 %s' % (base_tag, tag))
+        say('     性能基线只在本机有意义。请跑 --regen-perf 按当前机器重建。')
+        RESULTS.append(('性能', False, '基线跨机器（%s → %s），需 --regen-perf' % (base_tag, tag)))
         return
 
     say('  本次 %d ms vs 基线 %d ms（FAIL 线 +%d%%）   总耗时 %.1fs'
@@ -234,8 +293,11 @@ def gate_perf(regen=False):
         RESULTS.append(('性能', True, '%d ms（异常变快，请确认）' % ms))
         return
     if ms < base:
-        io.open(PERF_BASE, 'w').write(str(ms))       # 缓慢向好跟踪，防基线长期漂移
-        say('  （基线已更新为 %d ms）' % ms)
+        # 曾经这里会自动把基线改小（"缓慢向好跟踪"）。那会让门禁越放越松：
+        # 一次意外跳过的步骤就能永久降低门槛，之后再慢也追不回来。
+        # 改为只提示，基线只在 --regen-perf 下显式重建。
+        say('  （比基线快 %d ms：%d ms；基线未改动，确认后可用 --regen-perf 收紧）'
+            % (base - ms, ms))
     RESULTS.append(('性能', True, '%d ms ≤ 基线 %d ms' % (ms, base)))
 
 

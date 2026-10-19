@@ -18,6 +18,8 @@
 using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Text;
 
@@ -41,6 +43,59 @@ namespace PicTool
         }
 
         // ---------- 入口 ----------
+        /// <summary>
+        /// 把合成测试页导出到指定路径，供门禁在别人机器上使用。
+        /// 门禁要的是"固定测试页"，以前靠仓库外手工放的 _probe\doc_test.png，
+        /// 别人 clone 下来没有，门禁只能跳过。改成由本程序确定性生成，
+        /// 入库的那张和基准用的是同一份代码，不会漂移。
+        ///
+        /// 保存时量化成256 色索引位图并用最大压缩：门禁只验算法行为稳定，
+        /// 不需要全彩精度，原图 1.7MB 可以压到 100KB 出头，便于入库。
+        /// </summary>
+        public static string ExportFixture(string path)
+        {
+            try
+            {
+                string full = Path.GetFullPath(path);
+                string dir = Path.GetDirectoryName(full);
+                if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                using (Bitmap src = Fixture(PAGE_W, PAGE_H))
+                {
+                    // 直接 Clone 成8bpp 索引色：GDI+ 在这一步做颜色量化。
+                    // 门禁只验算法行为稳定，不需要全彩精度；
+                    // 原图 1.7MB 可以压到100KB 出头，便于入库。
+                    // 注意：不能对8bpp 目标调 Graphics.DrawImage，
+                    // GDI+ 不支持往索引色位图做源拷贝绘制（实测抛异常）。
+                    using (Bitmap small = src.Clone(
+                        new Rectangle(0, 0, PAGE_W, PAGE_H),
+                        System.Drawing.Imaging.PixelFormat.Format8bppIndexed))
+                    {
+                        small.SetResolution(96, 96);
+                        // PNG 最大压缩
+                        System.Drawing.Imaging.ImageCodecInfo png = null;
+                        foreach (System.Drawing.Imaging.ImageCodecInfo c in
+                            System.Drawing.Imaging.ImageCodecInfo.GetImageEncoders())
+                        {
+                            if (c.MimeType == "image/png") { png = c; break; }
+                        }
+                        using (System.Drawing.Imaging.EncoderParameters ep =
+                            new System.Drawing.Imaging.EncoderParameters(1))
+                        {
+                            ep.Param[0] = new System.Drawing.Imaging.EncoderParameter(
+                                System.Drawing.Imaging.Encoder.Compression, 9L);
+                            small.Save(full, png, ep);
+                        }
+                    }
+                }
+                return "OK -> " + full + "  (" + PAGE_W + "x" + PAGE_H + ", " +
+                       (new FileInfo(full).Length / 1024) + " KB, 8bpp 灰阶索引)";
+            }
+            catch (Exception ex)
+            {
+                return "FAIL: " + ex.Message;
+            }
+        }
+
         public static string RunAll(string[] args)
         {
             bool regen = false;
