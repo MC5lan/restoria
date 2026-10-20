@@ -58,47 +58,58 @@ jobs:
 
           if ($rc -ne 0) {
             Write-Host ""
-            # Emit everything needed to explain the failure as annotations,
-            # because step logs need authentication to download while
-            # annotations are readable through the public API.
+            # Annotations are capped at roughly ten per step -- measured, not
+            # assumed: with four presence lines and six diagnostic lines the
+            # diff never appeared at all, even though the diff file was 2983
+            # bytes on the runner.
             #
-            # Two rounds were spent guessing why this gate failed. The first
-            # guess (missing font) was wrong: the diagnostic proved the runner
-            # has Microsoft YaHei UI, the same face this machine uses. So this
-            # version reports raw evidence instead of interpreted evidence.
-            #
-            # Budget matters: GitHub caps annotations at 50 per job, and
-            # listing the whole temp directory would produce 40+ entries
-            # (scan32 leaves a copy of the executable behind each run) and
-            # crowd out the actual diff. So: four lines of file presence,
-            # then 15 lines of diagnostics and 21 lines of diff.
+            # So the full evidence goes to the step summary instead, which is
+            # rendered as HTML on the run page and readable without a token.
+            # One compressed annotation carries the first few diff lines in
+            # case the summary is not reachable either.
 
-            Write-Host ("TEMP = " + $env:TEMP)
+            $tmp = $env:TEMP
             foreach ($w in @('PicTool-layout.txt','PicTool-layout-diag.txt',
                              'PicTool-layout-diff.txt','PicTool-env.txt')) {
-              $p = Join-Path $env:TEMP $w
-              if (Test-Path $p) {
-                Write-Host ("::error::present: " + $w + "  " + (Get-Item $p).Length + " B")
-              } else {
-                Write-Host ("::error::ABSENT : " + $w)
-              }
+              $p = Join-Path $tmp $w
+              if (Test-Path $p) { Write-Host ("::error::present: " + $w + "  " + (Get-Item $p).Length + " B") }
+              else { Write-Host ("::error::ABSENT : " + $w) }
             }
 
-            $budget = @{ 'PicTool-layout-diag.txt' = 15; 'PicTool-layout-diff.txt' = 21 }
-            foreach ($f in @('PicTool-layout-diag.txt','PicTool-layout-diff.txt')) {
-              $p = Join-Path $env:TEMP $f
-              if (-not (Test-Path $p)) { continue }
-              $content = @(Get-Content $p -Encoding UTF8)
-              Write-Host ("--- " + $f + " (" + $content.Count + " lines) ---")
-              $n = 0
-              foreach ($line in $content) {
-                if ($n -ge $budget[$f]) {
-                  Write-Host ("::error::[" + $f + "] ... " + ($content.Count - $n) + " more lines")
-                  break
-                }
-                if ($line.Trim().Length -gt 0) { Write-Host $line; Write-Host ("::error::" + $line) }
-                $n++
+            # The two lines that decide the investigation: the actual client
+            # size (if the runner clamped the window, everything shifts) and the
+            # first differences.
+            $snap = Join-Path $tmp 'PicTool-layout.txt'
+            $diff = Join-Path $tmp 'PicTool-layout-diff.txt'
+            if (Test-Path $snap) {
+              $head = @(Get-Content $snap -Encoding UTF8 | Select-Object -First 2) -join ' || '
+              Write-Host ("::error::snapshot head: " + $head)
+            }
+            if (Test-Path $diff) {
+              $dl = @(Get-Content $diff -Encoding UTF8 | Where-Object { $_.Trim().Length -gt 0 } | Select-Object -First 6) -join ' || '
+              Write-Host ("::error::diff head: " + $dl)
+            }
+
+            # Full evidence into the step summary, as a fenced code block so the
+            # leading spaces of the control tree survive.
+            if ($env:GITHUB_STEP_SUMMARY) {
+              $md = New-Object System.Text.StringBuilder
+              [void]$md.AppendLine('## Layout gate failure')
+              [void]$md.AppendLine('')
+              [void]$md.AppendLine('- runner font: check the diagnostic block below')
+              [void]$md.AppendLine('- this file is written only when --layout-check exits 1')
+              [void]$md.AppendLine('')
+              foreach ($f in @('PicTool-layout-diag.txt','PicTool-layout-diff.txt')) {
+                $p = Join-Path $tmp $f
+                [void]$md.AppendLine('### ' + $f)
+                [void]$md.AppendLine('')
+                if (-not (Test-Path $p)) { [void]$md.AppendLine('_not produced_'); [void]$md.AppendLine(''); continue }
+                [void]$md.AppendLine('```')
+                foreach ($line in (Get-Content $p -Encoding UTF8)) { [void]$md.AppendLine($line) }
+                [void]$md.AppendLine('```')
+                [void]$md.AppendLine('')
               }
+              [System.IO.File]::AppendAllText($env:GITHUB_STEP_SUMMARY, $md.ToString(), (New-Object System.Text.UTF8Encoding($false)))
             }
             exit 1
           }
