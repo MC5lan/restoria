@@ -65,30 +65,38 @@ jobs:
             # Two rounds were spent guessing why this gate failed. The first
             # guess (missing font) was wrong: the diagnostic proved the runner
             # has Microsoft YaHei UI, the same face this machine uses. So this
-            # version reports the raw evidence instead of interpreted evidence.
+            # version reports raw evidence instead of interpreted evidence.
+            #
+            # Budget matters: GitHub caps annotations at 50 per job, and
+            # listing the whole temp directory would produce 40+ entries
+            # (scan32 leaves a copy of the executable behind each run) and
+            # crowd out the actual diff. So: four lines of file presence,
+            # then 15 lines of diagnostics and 21 lines of diff.
 
-            # 1. Which temp files exist at all?
-            Write-Host "=== temp files ==="
-            $tmp = $env:TEMP
-            Write-Host ("TEMP = " + $tmp)
-            Get-ChildItem $tmp -Filter 'PicTool-*' -ErrorAction SilentlyContinue |
-              ForEach-Object { Write-Host ("::error::temp file: " + $_.Name + "  " + $_.Length + " B") }
-
-            foreach ($f in @('PicTool-layout-diag.txt', 'PicTool-layout-diff.txt')) {
-              $p = Join-Path $tmp $f
-              Write-Host ""
-              Write-Host ("--- " + $f + " ---")
-              if (-not (Test-Path $p)) {
-                Write-Host ("::error::MISSING: " + $p)
-                continue
+            Write-Host ("TEMP = " + $env:TEMP)
+            foreach ($w in @('PicTool-layout.txt','PicTool-layout-diag.txt',
+                             'PicTool-layout-diff.txt','PicTool-env.txt')) {
+              $p = Join-Path $env:TEMP $w
+              if (Test-Path $p) {
+                Write-Host ("::error::present: " + $w + "  " + (Get-Item $p).Length + " B")
+              } else {
+                Write-Host ("::error::ABSENT : " + $w)
               }
-              $content = Get-Content $p -Encoding UTF8
-              Write-Host ("(" + $content.Count + " lines)")
+            }
+
+            $budget = @{ 'PicTool-layout-diag.txt' = 15; 'PicTool-layout-diff.txt' = 21 }
+            foreach ($f in @('PicTool-layout-diag.txt','PicTool-layout-diff.txt')) {
+              $p = Join-Path $env:TEMP $f
+              if (-not (Test-Path $p)) { continue }
+              $content = @(Get-Content $p -Encoding UTF8)
+              Write-Host ("--- " + $f + " (" + $content.Count + " lines) ---")
               $n = 0
               foreach ($line in $content) {
-                if ($n -ge 45) { Write-Host ("::error::... truncated, " + $content.Count + " lines total"); break }
-                Write-Host $line
-                if ($line.Trim().Length -gt 0) { Write-Host ("::error::" + $line) }
+                if ($n -ge $budget[$f]) {
+                  Write-Host ("::error::[" + $f + "] ... " + ($content.Count - $n) + " more lines")
+                  break
+                }
+                if ($line.Trim().Length -gt 0) { Write-Host $line; Write-Host ("::error::" + $line) }
                 $n++
               }
             }
