@@ -58,19 +58,39 @@ jobs:
 
           if ($rc -ne 0) {
             Write-Host ""
-            Write-Host "=== layout diagnostics ==="
+            # Emit everything needed to explain the failure as annotations,
+            # because step logs need authentication to download while
+            # annotations are readable through the public API.
+            #
+            # Two rounds were spent guessing why this gate failed. The first
+            # guess (missing font) was wrong: the diagnostic proved the runner
+            # has Microsoft YaHei UI, the same face this machine uses. So this
+            # version reports the raw evidence instead of interpreted evidence.
+
+            # 1. Which temp files exist at all?
+            Write-Host "=== temp files ==="
+            $tmp = $env:TEMP
+            Write-Host ("TEMP = " + $tmp)
+            Get-ChildItem $tmp -Filter 'PicTool-*' -ErrorAction SilentlyContinue |
+              ForEach-Object { Write-Host ("::error::temp file: " + $_.Name + "  " + $_.Length + " B") }
+
             foreach ($f in @('PicTool-layout-diag.txt', 'PicTool-layout-diff.txt')) {
-              $p = Join-Path $env:TEMP $f
+              $p = Join-Path $tmp $f
+              Write-Host ""
               Write-Host ("--- " + $f + " ---")
-              if (Test-Path $p) {
-                Get-Content $p -Encoding UTF8 | ForEach-Object {
-                  Write-Host $_
-                  if ($_ -match '不一致|当前:|基线:|行数不同|字体|DPI|height=') {
-                    Write-Host ("::error::" + $_)
-                  }
-                }
+              if (-not (Test-Path $p)) {
+                Write-Host ("::error::MISSING: " + $p)
+                continue
               }
-              else { Write-Host "  (not produced)" }
+              $content = Get-Content $p -Encoding UTF8
+              Write-Host ("(" + $content.Count + " lines)")
+              $n = 0
+              foreach ($line in $content) {
+                if ($n -ge 45) { Write-Host ("::error::... truncated, " + $content.Count + " lines total"); break }
+                Write-Host $line
+                if ($line.Trim().Length -gt 0) { Write-Host ("::error::" + $line) }
+                $n++
+              }
             }
             exit 1
           }
