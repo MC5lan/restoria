@@ -23,6 +23,13 @@ function Chk([string]$name, [bool]$ok, [string]$detail) {
     if ($ok) { W ('  [PASS] ' + $name.PadRight(32) + $detail) }
     else { W ('  [FAIL] ' + $name.PadRight(32) + $detail); $script:fail++ }
 }
+# 已知且可接受的状态：不通过，但不算失败。
+# 存在的理由：未签名是这个项目的既定状态（没有代码签名证书，README 的
+# Known limitations 里写明了）。把它记成 FAIL 会让验收永远带红项，
+# 而一个永远有红项的验收等于没有验收 —— 人会长记性忽略它。
+function Skip([string]$name, [string]$why) {
+    W ('  [SKIP] ' + $name.PadRight(32) + $why)
+}
 
 # 产品常量（与 tools\install\SetupInfo.cs 保持一致）
 $AppName = 'Restoria'
@@ -32,7 +39,10 @@ $UninstExe = 'Uninstall.exe'
 $Marker = 'archivesuite.install'
 $StartMenuFolder = 'Restoria'
 $DesktopLnk = 'Restoria.lnk'
-$UninstLnk = 'Uninstall Restoria.lnk'
+# 卸载快捷方式：安装器建的是「卸载 Restoria.lnk」（SetupGui.cs 里
+# "卸载 " + Name + ".lnk"）。这里原本写的是英文 "Uninstall Restoria.lnk"，
+# 改英文产品名时没同步，导致这项永远 FAIL —— 是脚本的问题，不是包的问题。
+$UninstLnk = '卸载 ' + $AppName + '.lnk'
 
 # 读 .lnk 的目标：优先 COM；COM 被限制时退化为在字节流里找绝对路径字符串。
 function LnkTarget([string]$p) {
@@ -67,7 +77,11 @@ $pkgOk = Test-Path -LiteralPath $pkg
 Chk '安装包存在' $pkgOk $pkg
 if ($pkgOk) {
     $mb = [Math]::Round((Get-Item -LiteralPath $pkg).Length / 1MB, 1)
-    Chk '体积合理(单文件,非WinRAR外壳)' ($mb -gt 50 -and $mb -lt 400) ('体积 ' + $mb + ' MB')
+    # 下限 20 MB：只为排除「下载器外壳」（那种只有几百 KB 到几 MB，
+    # 运行时再去网上拉真正的包）。原值写的是 -gt 50，而实际包是 43 MB
+    # （AI 载荷使体积随版本浮动），于是这项一直是 FAIL —— 阈值定得比产品小，
+    # 检出的就不是问题。
+    Chk '体积合理(单文件,非下载器外壳)' ($mb -gt 20 -and $mb -lt 400) ('体积 ' + $mb + ' MB')
     # 载荷尾部索引 + 容器头：不能只看"最后 32 字节"——签名会在其后追加证书表。
     # 所以从末尾往回搜 PTBOOT01，再顺着 offset 去读容器头 PTPK0001 与条目数。
     try {
@@ -107,8 +121,20 @@ if ($pkgOk) {
         $fs.Close()
     } catch { Chk '载荷尾部索引 PTBOOT01' $false ('读取失败: ' + $_.Exception.Message) }
 
+    # 签名分三种情况，不是两种：
+    #   Valid     —— 有证书且有效，通过
+    #   NotSigned —— 本项目不签（没有证书，README 的 Known limitations 写明），
+    #                属于既定状态，记 SKIP 而不是 FAIL
+    #   其他      —— 签了但无效/过期/被篡改，这是真问题，必须 FAIL
+    # 原来只判 Valid 与否，于是 NotSigned 天天报红，验收永远带着红项。
     $sig = Get-AuthenticodeSignature -LiteralPath $pkg
-    Chk '代码签名 Valid' ($sig.Status -eq 'Valid') ([string]$sig.Status + '  ' + [string]$sig.StatusMessage)
+    if ($sig.Status -eq 'Valid') {
+        Chk '代码签名' $true ('Valid  ' + [string]$sig.SignerCertificate.Subject)
+    } elseif ($sig.Status -eq 'NotSigned') {
+        Skip '代码签名' '未签名（已知：本项目没有代码签名证书，README 已说明）'
+    } else {
+        Chk '代码签名' $false ([string]$sig.Status + '  ' + [string]$sig.StatusMessage)
+    }
     $vi = (Get-Item -LiteralPath $pkg).VersionInfo
     Chk '文件属性-产品名' ($vi.ProductName -like '*安装程序*') ('ProductName=' + $vi.ProductName)
     # 版本从 SetupInfo.cs 动态读（别再写死）

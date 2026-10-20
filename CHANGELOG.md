@@ -57,6 +57,38 @@ to 1.5.6; nothing about how pages are processed changed.
 - Verified that the layout gate is sensitive at one pixel: `LayoutGateProbe`
   widens a control by 1px and the snapshot changes.
 
+**Gates that can actually fail**
+
+A gate that cannot fail is decoration. Three of them could not.
+
+- `--layout` never set an exit code. CI ran `Restoria.exe --layout` followed by
+  `if errorlevel 1`, and the second line could never fire, so the layout step
+  was a green shell that checked nothing. Added `--layout-check`, which
+  compares against `tools\golden-layout.txt` and exits 1 on any difference. It
+  never rewrites the baseline; only `--regen-layout` does that.
+- The snapshot's second line recorded RAM size and core count, which differ per
+  machine, so the baseline was bound to the machine that produced it and could
+  never pass anywhere else. The line is now fixed text; the real values go to a
+  separate report.
+- The snapshot also recorded measured AutoSize sizes, which depend on the
+  installed font -- the same string measures 219x15 in YaHei UI and 229x16 in
+  Segoe UI. Those are now reported as `auto` and the description label uses a
+  constant height in diagnostic mode, so the snapshot is identical on any
+  machine regardless of fonts. `PICTOOL_UI_FACE` forces a face for verifying
+  this.
+- The resource gate (unpaired LockBits/UnlockBits) now runs in CI as its own
+  blocking step.
+- The performance gate is tri-state. A baseline recorded on one machine says
+  nothing about another CPU, so that case is now reported as inconclusive
+  rather than failed, and marked separately in the summary.
+- A gate that fails without saying why is barely better than one that never
+  fails. Failure detail is now written to a UTF-8 file and surfaced through
+  GitHub annotations, because step logs require authentication to download.
+- The gate scripts crashed on English Windows before printing anything: the
+  reports are in Chinese and code page 1252 cannot encode them, so the first
+  print raised UnicodeEncodeError and the step failed for no reason at all.
+  All four reporting scripts now force UTF-8 on their output streams.
+
 **Documentation**
 
 - README is now English-first, with Chinese, Japanese, German, French, Spanish
