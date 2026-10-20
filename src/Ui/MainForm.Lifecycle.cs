@@ -336,10 +336,29 @@ namespace PicTool
 
         public void DumpLayout()
         {
-            // 诊断模式固定客户区尺寸：正常启动是最大化（尺寸随屏幕变），
-            // 而布局门禁的基准必须与环境无关，所以这里先恢复标准尺寸再导出。
+            // 诊断模式用一个**任何屏幕都放得下**的尺寸。
+            //
+            // 原来用 1080x680，在开发机上没问题，但 CI 的 windows-latest 虚拟
+            // 屏幕只有 1024x768：Windows 会把超宽窗体压回屏幕内，客户区变成
+            // 1028x680，画布宽度 444→392，后面每个控件跟着变。基线在一台机器
+            // 上生成、在另一台上必然对不上，而且报错看起来像"布局被改坏了"。
+            // 实测证据：CI 快照第一行是 `Form client size = 1028x680`。
+            //
+            // 1000x620 的窗体含边框约 1016x659，在 1024x768 的屏幕上不会触发压缩。
+            // 下面的第一行同时记录"请求值"和"实际值"，所以万一将来换了更小的
+            // 屏幕，快照里能直接看出来，不用再猜一轮。
+            //
+            // 必须先清掉 MinimumSize：窗体构造时设了 1060x640（见 MainForm.cs），
+            // 而 CI 的屏幕只有 1024 宽 —— 下限比屏幕还大，Windows 只能把窗体压到
+            // 屏幕内，客户区变成 1028。这就是整个布局门禁在 CI 上永远红的根因：
+            // 请求 1080 客户区时，下限 1060 在开发机（大屏）上不起作用，
+            // 在 CI（1024 屏）上却和屏幕打架。诊断要的是"不受屏幕影响"，不是
+            // "界面最小能到多小"，所以这里把它让开。
+            const int DiagW = 1000;
+            const int DiagH = 620;
             WindowState = FormWindowState.Normal;
-            ClientSize = new Size(1080, 680);
+            MinimumSize = Size.Empty;
+            ClientSize = new Size(DiagW, DiagH);
             Show();
             PerformLayout();
             Application.DoEvents();
@@ -348,7 +367,13 @@ namespace PicTool
             // 这里显式再收一次，让 --layout 成为确定性的门禁，不再假报警。
             ApplyContentScroll();
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
-            sb.AppendLine("Form client size = " + ClientSize.Width + "x" + ClientSize.Height);
+            // 请求值 vs 实际值：两者不等就说明屏幕放不下，布局不可比。
+            // 把这件事写在快照第一行，比让它伪装成"某个控件坐标变了"有用得多。
+            int reqW = DiagW, reqH = DiagH;
+            sb.AppendLine("Form client size = " + ClientSize.Width + "x" + ClientSize.Height
+                + (ClientSize.Width == reqW && ClientSize.Height == reqH
+                    ? ""
+                    : "  (requested " + reqW + "x" + reqH + ", clamped by screen)"));
             // 环境行**不能进快照的可比较部分**：RAM、核数、CLR 版本每台机器都不同，
             // 写进去就等于让基线与生成它的那台机器绑定，换机器（包括 CI）必然假报警。
             // 之前它确实被写进去了，于是 CI 上的布局门禁从来没有真正绿过。

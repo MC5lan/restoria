@@ -1,20 +1,20 @@
-﻿Form client size = 1080x680
+﻿Form client size = 1000x620
 环境: (随机器变化，详见 PicTool-env.txt)
-CanvasControl '' bounds={X=312,Y=52,Width=444,Height=602} dock=Fill vis=True z=0
-FlatSplitter '' bounds={X=306,Y=52,Width=6,Height=602} dock=Left vis=True z=1
-WorkspacePanel '' bounds={X=62,Y=52,Width=244,Height=602} dock=Left vis=True z=2
+CanvasControl '' bounds={X=312,Y=52,Width=364,Height=542} dock=Fill vis=True z=0
+FlatSplitter '' bounds={X=306,Y=52,Width=6,Height=542} dock=Left vis=True z=1
+WorkspacePanel '' bounds={X=62,Y=52,Width=244,Height=542} dock=Left vis=True z=2
   Control '' bounds={X=0,Y=0,Width=244,Height=86} dock=Top vis=True z=0
     TextBox '' bounds={X=20,Y=52,Width=204,Height=auto} dock=None vis=True z=0
-  Control '' bounds={X=0,Y=572,Width=244,Height=30} dock=Bottom vis=True z=1
-NavRail '' bounds={X=0,Y=52,Width=62,Height=602} dock=Left vis=True z=3
-  FlatButton '' bounds={X=11,Y=558,Width=40,Height=36} dock=None vis=True z=0
-Panel '' bounds={X=756,Y=52,Width=324,Height=602} dock=Right vis=True z=4
+  Control '' bounds={X=0,Y=512,Width=244,Height=30} dock=Bottom vis=True z=1
+NavRail '' bounds={X=0,Y=52,Width=62,Height=542} dock=Left vis=True z=3
+  FlatButton '' bounds={X=11,Y=498,Width=40,Height=36} dock=None vis=True z=0
+Panel '' bounds={X=676,Y=52,Width=324,Height=542} dock=Right vis=True z=4
   FlatDot '' bounds={X=299,Y=20,Width=9,Height=9} dock=None vis=False z=0
   Label '未打开图片' bounds={X=16,Y=14,Width=276,Height=22} dock=None vis=True z=1
   Label '' bounds={X=16,Y=36,Width=276,Height=18} dock=None vis=True z=2
-  Panel '' bounds={X=0,Y=66,Width=324,Height=536} dock=None vis=True z=3
-    FlatScroll '' bounds={X=314,Y=0,Width=10,Height=536} dock=None vis=False z=0
-    RemovePage '' bounds={X=0,Y=0,Width=324,Height=536} dock=None vis=True z=1
+  Panel '' bounds={X=0,Y=66,Width=324,Height=476} dock=None vis=True z=3
+    FlatScroll '' bounds={X=314,Y=0,Width=10,Height=476} dock=None vis=False z=0
+    RemovePage '' bounds={X=0,Y=0,Width=324,Height=476} dock=None vis=True z=1
       Label '去除' bounds={X=16,Y=12,Width=292,Height=26} dock=None vis=True z=0
       Label '涂掉污点、水印、划痕，再点【开始' bounds={X=16,Y=44,Width=292,Height=18} dock=None vis=True z=1
       Label '24' bounds={X=232,Y=74,Width=76,Height=18} dock=None vis=True z=2
@@ -203,10 +203,10 @@ Panel '' bounds={X=756,Y=52,Width=324,Height=602} dock=Right vis=True z=4
       FlatButton '上移一层' bounds={X=16,Y=408,Width=142,Height=32} dock=None vis=False z=18
       FlatButton '下移一层' bounds={X=166,Y=408,Width=142,Height=32} dock=None vis=False z=19
       FlatButton '删除选中文字' bounds={X=16,Y=448,Width=292,Height=32} dock=None vis=False z=20
-Panel '' bounds={X=0,Y=654,Width=1080,Height=26} dock=Bottom vis=True z=5
+Panel '' bounds={X=0,Y=594,Width=1000,Height=26} dock=Bottom vis=True z=5
   Label '' bounds={X=16,Y=6,Width=520,Height=18} dock=None vis=True z=0
-  Label '笔刷：涂抹要去除的区域' bounds={X=600,Y=6,Width=464,Height=18} dock=None vis=True z=1
-Panel '' bounds={X=0,Y=0,Width=1080,Height=52} dock=Top vis=True z=6
+  Label '笔刷：涂抹要去除的区域' bounds={X=520,Y=6,Width=464,Height=18} dock=None vis=True z=1
+Panel '' bounds={X=0,Y=0,Width=1000,Height=52} dock=Top vis=True z=6
   FlatButton '打开文件夹' bounds={X=14,Y=10,Width=118,Height=32} dock=None vis=True z=0
   FlatButton '打开图片' bounds={X=138,Y=10,Width=100,Height=32} dock=None vis=True z=1
   Panel '' bounds={X=246,Y=14,Width=1,Height=26} dock=None vis=True z=2
@@ -218,12 +218,12 @@ Panel '' bounds={X=0,Y=0,Width=1080,Height=52} dock=Top vis=True z=6
   FlatButton '' bounds={X=394,Y=10,Width=30,Height=32} dock=None vis=True z=8
   FlatButton '' bounds={X=424,Y=10,Width=30,Height=32} dock=None vis=True z=9
   Panel '' bounds={X=454,Y=14,Width=1,Height=26} dock=None vis=True z=10
-  FlatButton '' bounds={X=492,Y=10,Width=30,Height=32} dock=None vis=True z=11
-  Label '100%' bounds={X=522,Y=17,Width=44,Height=18} dock=None vis=True z=12
-  FlatButton '' bounds={X=566,Y=10,Width=30,Height=32} dock=None vis=True z=13
-  FlatButton '' bounds={X=596,Y=10,Width=30,Height=32} dock=None vis=True z=14
-  Segmented '' bounds={X=632,Y=10,Width=196,Height=32} dock=None vis=True z=15
-  FlatButton '' bounds={X=838,Y=10,Width=34,Height=32} dock=None vis=True z=16
-  FlatButton '保存' bounds={X=878,Y=10,Width=92,Height=32} dock=None vis=True z=17
-  FlatButton '' bounds={X=984,Y=10,Width=34,Height=32} dock=None vis=True z=18
-  FlatButton '' bounds={X=1024,Y=10,Width=34,Height=32} dock=None vis=True z=19
+  FlatButton '' bounds={X=412,Y=10,Width=30,Height=32} dock=None vis=True z=11
+  Label '100%' bounds={X=442,Y=17,Width=44,Height=18} dock=None vis=True z=12
+  FlatButton '' bounds={X=486,Y=10,Width=30,Height=32} dock=None vis=True z=13
+  FlatButton '' bounds={X=516,Y=10,Width=30,Height=32} dock=None vis=True z=14
+  Segmented '' bounds={X=552,Y=10,Width=196,Height=32} dock=None vis=True z=15
+  FlatButton '' bounds={X=758,Y=10,Width=34,Height=32} dock=None vis=True z=16
+  FlatButton '保存' bounds={X=798,Y=10,Width=92,Height=32} dock=None vis=True z=17
+  FlatButton '' bounds={X=904,Y=10,Width=34,Height=32} dock=None vis=True z=18
+  FlatButton '' bounds={X=944,Y=10,Width=34,Height=32} dock=None vis=True z=19

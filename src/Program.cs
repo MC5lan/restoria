@@ -461,6 +461,17 @@ namespace PicTool
                     if (a.Length != b.Length)
                         detail.AppendLine("行数不同：当前 " + a.Length + " 行，基线 " + b.Length + " 行");
 
+                    // 客户区尺寸不同是最容易被误读成"布局被改坏"的情况：所有控件
+                    // 的坐标都会跟着变，diff 看着像几十处回归，实际只是这台机器的
+                    // 屏幕放不下诊断尺寸。单独点出来，省掉一整轮排查。
+                    if (a.Length > 0 && b.Length > 0 && a[0] != b[0]
+                        && a[0].StartsWith("Form client size") && b[0].StartsWith("Form client size"))
+                    {
+                        detail.AppendLine();
+                        detail.AppendLine("★ 客户区尺寸不同 —— 这不是布局改动，是这台机器的屏幕放不下诊断尺寸。");
+                        detail.AppendLine("  上面所有坐标差异都由它引起。减小 DumpLayout 里的 DiagW/DiagH 即可。");
+                    }
+
                     if (shown == 0 && a.Length == b.Length)
                     {
                         detail.AppendLine("布局与基线一致（" + a.Length + " 行）。");
