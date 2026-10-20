@@ -6,6 +6,120 @@
 
 ---
 
+## 1.5.8 — 2026-10-20
+
+<!-- release-notes:start -->
+No change to image processing. The restoration pipeline produces the same output
+as 1.5.7, byte for byte; everything here is about the checks around it.
+
+This is a maintenance release. If 1.5.7 works for you, there is nothing to gain
+by updating -- and nothing to lose by staying.
+
+**The gates can now fail**
+
+A check that cannot fail is decoration, and three of ours could not.
+
+- `--layout` exported a layout snapshot and always exited 0, while CI ran it and
+  then tested `errorlevel` -- a line that could never fire. The step had been
+  green and empty since it was added. `--layout-check` replaces it: it compares
+  against the checked-in baseline and exits 1 on any difference. It never
+  rewrites the baseline, because a gate that updates its own reference always
+  passes.
+- The baseline could not pass on any machine but the one that made it. It
+  recorded RAM size and core count; it recorded text sizes measured with the
+  installed font; and it assumed a 1080-wide window on a screen that might be
+  1024. All three are now pinned: the environment line is fixed text, measured
+  sizes report as `auto`, and diagnostic mode uses a window size that fits any
+  laptop.
+- The LockBits/UnlockBits scanner (unpaired locks corrupt a bitmap in place and
+  can still pass every functional test) now runs as its own blocking CI step.
+- The performance verdict is tri-state. A baseline recorded on one machine says
+  nothing about another CPU, so that case reports as inconclusive instead of
+  failing.
+
+**Failures now say why**
+
+Four rounds of investigation were spent on a red build whose logs could not be
+read: step logs require authentication, and GitHub silently caps annotations at
+around ten per step, which is exactly where the evidence kept disappearing. The
+full diagnostic now goes to the step summary, which is rendered on the run page
+and readable without a token.
+
+The four reporting scripts also crashed before printing anything on an English
+Windows runner -- their reports are in Chinese and code page 1252 cannot encode
+them, so the first print raised UnicodeEncodeError and the step failed for no
+reason at all.
+
+**The release check was failing on its own bugs**
+
+Three items were red on the rebuilt package, none of them a problem with the
+package: a shortcut lookup that still used the English name after the installer
+started creating `卸载 Restoria.lnk`, a size threshold set above the actual
+product size, and a signature check that treated "not signed" as failure when
+not signing is this project's documented state. All three are fixed; signing is
+now three-way (valid passes, unsigned is skipped with a reason, invalid fails).
+
+**Distribution**
+
+- Assets keep the English names that match the README download table.
+- The PDB ships inside the package, so a user's crash report can be resolved to
+  a line instead of a bare address.
+
+**Known limitations**
+
+Unchanged from 1.5.7: pages with no binding holes are not rotated automatically,
+orientation thresholds assume roughly 300 DPI, phone photos carry perspective
+distortion, and the binaries are not code-signed.
+<!-- release-notes:end -->
+
+图像处理结果与 1.5.7 **逐字节一致**，本版只改了它外面那圈检查。属于维护版：
+1.5.7 用得好就没有升级的必要。
+
+**门禁变得能失败**
+
+不能失败的检查只是装饰，我们有三道是这样的。
+
+- `--layout` 导出布局快照后**永远退出 0**，而 CI 拿它做了 `if errorlevel 1`
+  判断 —— 那行永远不会触发。这一步从加进去那天起就是「绿的空壳」。
+  新增的 `--layout-check` 与基线比对，有差异退出 1；它**只读基线，绝不自动
+  改写**（门禁自己改基线，就永远通过）。
+- 基线只能在生成它的那台机器上通过。它记录了 RAM 与核数；记录了用当前字体
+  实测出来的文字尺寸；还假设窗口有 1080 宽，而屏幕可能只有 1024。
+  三处都钉死了：环境行改成固定文本、AutoSize 尺寸记为 `auto`、
+  诊断模式改用任何笔记本都放得下的窗口尺寸。
+- LockBits/UnlockBits 配对扫描（不配对的锁会原地破坏位图，且能通过所有功能
+  测试）成为 CI 里独立的阻断步骤。
+- 性能判定改三态：别的机器录的基线对自己毫无意义，这种情况报「无结论」
+  而不是判失败。
+
+**失败时说得出原因**
+
+有四轮排查耗在一次读不到日志的红构建上：步骤日志要认证才能下载，而 GitHub
+对每个 step 的 annotation 静默限制在十条左右 —— 证据恰好每次都丢在那里。
+现在完整诊断写进 step summary，run 页面直接渲染，不需要令牌。
+
+四个输出报告的脚本在英文 Windows 上还会在打印第一行时崩溃：报告是中文，
+代码页 1252 编码不了，第一次 print 就抛 UnicodeEncodeError，步骤无缘无故失败。
+
+**发行验收在拿自己的 bug 当问题报**
+
+重建的包上三项飘红，没有一项是包的问题：快捷方式查找仍用英文名（安装器早已
+改成 `卸载 Restoria.lnk`）、体积阈值定得比产品本身还大、签名检查把「未签名」
+判为失败（而本项目不签名是公开写明的状态）。三项都已修；签名现在分三种情况：
+有效通过、未签名记 SKIP 并说明原因、无效（过期/被篡改）仍然失败。
+
+**分发**
+
+- 资产名保持与 README 下载表一致的英文名。
+- PDB 随包发布，用户的崩溃报告能定位到行号而不只是一个地址。
+
+**已知限制**
+
+与 1.5.7 相同：无装订孔的页面不自动旋转、方向判据按约 300 DPI 标定、
+手机拍照有透视畸变、二进制未签名。
+
+---
+
 ## 1.5.7 — 2026-10-19
 
 <!-- release-notes:start -->
@@ -76,6 +190,12 @@ A gate that cannot fail is decoration. Three of them could not.
   constant height in diagnostic mode, so the snapshot is identical on any
   machine regardless of fonts. `PICTOOL_UI_FACE` forces a face for verifying
   this.
+- The snapshot was also tied to the screen. The window sets a 1060x640 minimum
+  size; diagnostic mode asked for a 1080-wide client area, which is fine on a
+  desktop and impossible on a 1024x768 CI runner, where Windows clamps the
+  window and every coordinate shifts. Diagnostic mode now clears the minimum
+  and uses 1000x620, and the snapshot's first line records the requested size
+  and notes when the screen overrode it.
 - The resource gate (unpaired LockBits/UnlockBits) now runs in CI as its own
   blocking step.
 - The performance gate is tri-state. A baseline recorded on one machine says
