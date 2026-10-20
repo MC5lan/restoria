@@ -108,6 +108,15 @@ static class LayoutGateProbe
         Type t = asm.GetType("PicTool.MainForm");
         if (t == null) { Console.Error.WriteLine("  MainForm not found"); return null; }
 
+        // The probe builds the form itself, so it bypasses Program.Main's
+        // --layout branch and therefore the DeterministicLayout flag that
+        // branch sets. Without this the probe measures a different snapshot
+        // than the gate does (AutoSize labels keep their measured heights) and
+        // the comparison is meaningless. Set it the same way the gate does.
+        FieldInfo det = t.GetField("DeterministicLayout",
+            BindingFlags.Public | BindingFlags.Static);
+        if (det != null) det.SetValue(null, true);
+
         object form = Activator.CreateInstance(t, new object[] { null });
         try
         {

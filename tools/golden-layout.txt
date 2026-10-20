@@ -4,7 +4,7 @@ CanvasControl '' bounds={X=312,Y=52,Width=444,Height=602} dock=Fill vis=True z=0
 FlatSplitter '' bounds={X=306,Y=52,Width=6,Height=602} dock=Left vis=True z=1
 WorkspacePanel '' bounds={X=62,Y=52,Width=244,Height=602} dock=Left vis=True z=2
   Control '' bounds={X=0,Y=0,Width=244,Height=86} dock=Top vis=True z=0
-    TextBox '' bounds={X=20,Y=52,Width=204,Height=14} dock=None vis=True z=0
+    TextBox '' bounds={X=20,Y=52,Width=204,Height=auto} dock=None vis=True z=0
   Control '' bounds={X=0,Y=572,Width=244,Height=30} dock=Bottom vis=True z=1
 NavRail '' bounds={X=0,Y=52,Width=62,Height=602} dock=Left vis=True z=3
   FlatButton '' bounds={X=11,Y=558,Width=40,Height=36} dock=None vis=True z=0
@@ -16,193 +16,193 @@ Panel '' bounds={X=756,Y=52,Width=324,Height=602} dock=Right vis=True z=4
     FlatScroll '' bounds={X=314,Y=0,Width=10,Height=536} dock=None vis=False z=0
     RemovePage '' bounds={X=0,Y=0,Width=324,Height=536} dock=None vis=True z=1
       Label '去除' bounds={X=16,Y=12,Width=292,Height=26} dock=None vis=True z=0
-      Label '涂掉污点、水印、划痕，再点【开始' bounds={X=16,Y=44,Width=216,Height=16} dock=None vis=True z=1
-      Label '24' bounds={X=232,Y=72,Width=76,Height=18} dock=None vis=True z=2
-      Label '笔刷大小（Ctrl+滚轮）' bounds={X=16,Y=72,Width=208,Height=18} dock=None vis=True z=3
-      FlatSlider '' bounds={X=16,Y=92,Width=292,Height=26} dock=None vis=True z=4
-      Label '修复方式' bounds={X=16,Y=126,Width=292,Height=18} dock=None vis=True z=5
-      Segmented '' bounds={X=16,Y=146,Width=292,Height=32} dock=None vis=True z=6
-      FlatButton '开始修复' bounds={X=16,Y=188,Width=292,Height=40} dock=None vis=True z=7
-      FlatButton '清除涂抹' bounds={X=16,Y=236,Width=292,Height=32} dock=None vis=True z=8
+      Label '涂掉污点、水印、划痕，再点【开始' bounds={X=16,Y=44,Width=292,Height=18} dock=None vis=True z=1
+      Label '24' bounds={X=232,Y=74,Width=76,Height=18} dock=None vis=True z=2
+      Label '笔刷大小（Ctrl+滚轮）' bounds={X=16,Y=74,Width=208,Height=18} dock=None vis=True z=3
+      FlatSlider '' bounds={X=16,Y=94,Width=292,Height=26} dock=None vis=True z=4
+      Label '修复方式' bounds={X=16,Y=128,Width=292,Height=18} dock=None vis=True z=5
+      Segmented '' bounds={X=16,Y=148,Width=292,Height=32} dock=None vis=True z=6
+      FlatButton '开始修复' bounds={X=16,Y=190,Width=292,Height=40} dock=None vis=True z=7
+      FlatButton '清除涂抹' bounds={X=16,Y=238,Width=292,Height=32} dock=None vis=True z=8
     CropPage '' bounds={X=0,Y=0,Width=324,Height=536} dock=None vis=False z=2
       Label '裁剪' bounds={X=16,Y=12,Width=292,Height=26} dock=None vis=False z=0
-      Label '框选范围裁剪；拍歪的用四点透视拉' bounds={X=16,Y=44,Width=194,Height=16} dock=None vis=False z=1
-      Label '按选框裁剪' bounds={X=16,Y=72,Width=292,Height=20} dock=None vis=False z=2
-      Label '比例' bounds={X=16,Y=94,Width=292,Height=18} dock=None vis=False z=3
-      Segmented '' bounds={X=16,Y=114,Width=292,Height=32} dock=None vis=False z=4
-      FlatButton '裁剪到选框' bounds={X=16,Y=154,Width=292,Height=40} dock=None vis=False z=5
-      FlatButton '自动裁白边' bounds={X=16,Y=202,Width=292,Height=32} dock=None vis=False z=6
-      Label '' bounds={X=16,Y=244,Width=292,Height=1} dock=None vis=False z=7
-      Label '透视校正（拍歪的文件）' bounds={X=16,Y=256,Width=292,Height=20} dock=None vis=False z=8
-      FlatButton '取四个角点' bounds={X=16,Y=280,Width=142,Height=32} dock=None vis=False z=9
-      FlatButton '清除取点' bounds={X=166,Y=280,Width=142,Height=32} dock=None vis=False z=10
-      FlatButton '应用透视校正' bounds={X=16,Y=320,Width=292,Height=40} dock=None vis=False z=11
-      Label '' bounds={X=16,Y=368,Width=292,Height=1} dock=None vis=False z=12
-      Label 'A4 画板' bounds={X=16,Y=380,Width=292,Height=20} dock=None vis=False z=13
-      Label '分辨率' bounds={X=16,Y=404,Width=292,Height=18} dock=None vis=False z=14
-      Segmented '' bounds={X=16,Y=424,Width=292,Height=32} dock=None vis=False z=15
-      Label '方向' bounds={X=16,Y=464,Width=292,Height=18} dock=None vis=False z=16
-      Segmented '' bounds={X=16,Y=484,Width=292,Height=32} dock=None vis=False z=17
-      Label '放入方式' bounds={X=16,Y=524,Width=292,Height=18} dock=None vis=False z=18
-      Segmented '' bounds={X=16,Y=544,Width=292,Height=32} dock=None vis=False z=19
-      FlatButton '裁剪并做成 A4' bounds={X=16,Y=584,Width=292,Height=40} dock=None vis=False z=20
-      FlatButton '只做成 A4' bounds={X=16,Y=632,Width=292,Height=32} dock=None vis=False z=21
+      Label '框选范围裁剪；拍歪的用四点透视拉' bounds={X=16,Y=44,Width=292,Height=18} dock=None vis=False z=1
+      Label '按选框裁剪' bounds={X=16,Y=74,Width=292,Height=20} dock=None vis=False z=2
+      Label '比例' bounds={X=16,Y=96,Width=292,Height=18} dock=None vis=False z=3
+      Segmented '' bounds={X=16,Y=116,Width=292,Height=32} dock=None vis=False z=4
+      FlatButton '裁剪到选框' bounds={X=16,Y=156,Width=292,Height=40} dock=None vis=False z=5
+      FlatButton '自动裁白边' bounds={X=16,Y=204,Width=292,Height=32} dock=None vis=False z=6
+      Label '' bounds={X=16,Y=246,Width=292,Height=1} dock=None vis=False z=7
+      Label '透视校正（拍歪的文件）' bounds={X=16,Y=258,Width=292,Height=20} dock=None vis=False z=8
+      FlatButton '取四个角点' bounds={X=16,Y=282,Width=142,Height=32} dock=None vis=False z=9
+      FlatButton '清除取点' bounds={X=166,Y=282,Width=142,Height=32} dock=None vis=False z=10
+      FlatButton '应用透视校正' bounds={X=16,Y=322,Width=292,Height=40} dock=None vis=False z=11
+      Label '' bounds={X=16,Y=370,Width=292,Height=1} dock=None vis=False z=12
+      Label 'A4 画板' bounds={X=16,Y=382,Width=292,Height=20} dock=None vis=False z=13
+      Label '分辨率' bounds={X=16,Y=406,Width=292,Height=18} dock=None vis=False z=14
+      Segmented '' bounds={X=16,Y=426,Width=292,Height=32} dock=None vis=False z=15
+      Label '方向' bounds={X=16,Y=466,Width=292,Height=18} dock=None vis=False z=16
+      Segmented '' bounds={X=16,Y=486,Width=292,Height=32} dock=None vis=False z=17
+      Label '放入方式' bounds={X=16,Y=526,Width=292,Height=18} dock=None vis=False z=18
+      Segmented '' bounds={X=16,Y=546,Width=292,Height=32} dock=None vis=False z=19
+      FlatButton '裁剪并做成 A4' bounds={X=16,Y=586,Width=292,Height=40} dock=None vis=False z=20
+      FlatButton '只做成 A4' bounds={X=16,Y=634,Width=292,Height=32} dock=None vis=False z=21
     RotatePage '' bounds={X=0,Y=0,Width=324,Height=536} dock=None vis=False z=3
       Label '方向' bounds={X=16,Y=12,Width=292,Height=26} dock=None vis=False z=0
-      Label '90° 快转、任意角度纠偏、镜像' bounds={X=16,Y=44,Width=180,Height=16} dock=None vis=False z=1
-      Label '0°' bounds={X=232,Y=72,Width=76,Height=18} dock=None vis=False z=2
-      Label '角度' bounds={X=16,Y=72,Width=208,Height=18} dock=None vis=False z=3
-      FlatSlider '' bounds={X=16,Y=92,Width=292,Height=26} dock=None vis=False z=4
-      FlatSwitch '自动裁掉空白边' bounds={X=16,Y=126,Width=292,Height=30} dock=None vis=False z=5
-      FlatSwitch '只纠正框选范围' bounds={X=16,Y=160,Width=292,Height=30} dock=None vis=False z=6
-      FlatButton '自动纠偏（一键转正）' bounds={X=16,Y=198,Width=292,Height=38} dock=None vis=False z=7
-      FlatButton '应用旋转（按上面角度）' bounds={X=16,Y=244,Width=292,Height=38} dock=None vis=False z=8
-      FlatButton '左转 90°' bounds={X=16,Y=290,Width=142,Height=32} dock=None vis=False z=9
-      FlatButton '右转 90°' bounds={X=166,Y=290,Width=142,Height=32} dock=None vis=False z=10
-      Label '' bounds={X=16,Y=336,Width=292,Height=1} dock=None vis=False z=11
-      Label '镜像翻转' bounds={X=16,Y=350,Width=292,Height=20} dock=None vis=False z=12
-      FlatButton '水平镜像' bounds={X=16,Y=376,Width=142,Height=36} dock=None vis=False z=13
-      FlatButton '垂直翻转' bounds={X=166,Y=376,Width=142,Height=36} dock=None vis=False z=14
+      Label '90° 快转、任意角度纠偏、镜像' bounds={X=16,Y=44,Width=292,Height=18} dock=None vis=False z=1
+      Label '0°' bounds={X=232,Y=74,Width=76,Height=18} dock=None vis=False z=2
+      Label '角度' bounds={X=16,Y=74,Width=208,Height=18} dock=None vis=False z=3
+      FlatSlider '' bounds={X=16,Y=94,Width=292,Height=26} dock=None vis=False z=4
+      FlatSwitch '自动裁掉空白边' bounds={X=16,Y=128,Width=292,Height=30} dock=None vis=False z=5
+      FlatSwitch '只纠正框选范围' bounds={X=16,Y=162,Width=292,Height=30} dock=None vis=False z=6
+      FlatButton '自动纠偏（一键转正）' bounds={X=16,Y=200,Width=292,Height=38} dock=None vis=False z=7
+      FlatButton '应用旋转（按上面角度）' bounds={X=16,Y=246,Width=292,Height=38} dock=None vis=False z=8
+      FlatButton '左转 90°' bounds={X=16,Y=292,Width=142,Height=32} dock=None vis=False z=9
+      FlatButton '右转 90°' bounds={X=166,Y=292,Width=142,Height=32} dock=None vis=False z=10
+      Label '' bounds={X=16,Y=338,Width=292,Height=1} dock=None vis=False z=11
+      Label '镜像翻转' bounds={X=16,Y=352,Width=292,Height=20} dock=None vis=False z=12
+      FlatButton '水平镜像' bounds={X=16,Y=378,Width=142,Height=36} dock=None vis=False z=13
+      FlatButton '垂直翻转' bounds={X=166,Y=378,Width=142,Height=36} dock=None vis=False z=14
     ColorPage '' bounds={X=0,Y=0,Width=324,Height=536} dock=None vis=False z=4
       Label '调色' bounds={X=16,Y=12,Width=292,Height=26} dock=None vis=False z=0
-      Label '过暗用【自动增强】；数值可点击直' bounds={X=16,Y=44,Width=216,Height=16} dock=None vis=False z=1
-      HistogramView '' bounds={X=16,Y=72,Width=292,Height=50} dock=None vis=False z=2
-      Label '0' bounds={X=232,Y=130,Width=76,Height=18} dock=None vis=False z=3
-      Label '亮度' bounds={X=16,Y=130,Width=208,Height=18} dock=None vis=False z=4
-      FlatSlider '' bounds={X=16,Y=147,Width=292,Height=22} dock=None vis=False z=5
-      Label '0' bounds={X=232,Y=175,Width=76,Height=18} dock=None vis=False z=6
-      Label '对比度' bounds={X=16,Y=175,Width=208,Height=18} dock=None vis=False z=7
-      FlatSlider '' bounds={X=16,Y=192,Width=292,Height=22} dock=None vis=False z=8
-      Label '0' bounds={X=232,Y=220,Width=76,Height=18} dock=None vis=False z=9
-      Label '饱和度' bounds={X=16,Y=220,Width=208,Height=18} dock=None vis=False z=10
-      FlatSlider '' bounds={X=16,Y=237,Width=292,Height=22} dock=None vis=False z=11
-      Label '0' bounds={X=232,Y=265,Width=76,Height=18} dock=None vis=False z=12
-      Label '色温' bounds={X=16,Y=265,Width=208,Height=18} dock=None vis=False z=13
-      FlatSlider '' bounds={X=16,Y=282,Width=292,Height=22} dock=None vis=False z=14
-      Label '' bounds={X=16,Y=310,Width=292,Height=1} dock=None vis=False z=15
-      Label '色阶 · 白底黑字校准' bounds={X=16,Y=324,Width=292,Height=20} dock=None vis=False z=16
-      Label '0' bounds={X=232,Y=348,Width=76,Height=18} dock=None vis=False z=17
-      Label '黑场' bounds={X=16,Y=348,Width=208,Height=18} dock=None vis=False z=18
-      FlatSlider '' bounds={X=16,Y=365,Width=292,Height=22} dock=None vis=False z=19
-      Label '255' bounds={X=232,Y=393,Width=76,Height=18} dock=None vis=False z=20
-      Label '白场' bounds={X=16,Y=393,Width=208,Height=18} dock=None vis=False z=21
-      FlatSlider '' bounds={X=16,Y=410,Width=292,Height=22} dock=None vis=False z=22
-      Label '1.00' bounds={X=232,Y=438,Width=76,Height=18} dock=None vis=False z=23
-      Label 'Gamma' bounds={X=16,Y=438,Width=208,Height=18} dock=None vis=False z=24
-      FlatSlider '' bounds={X=16,Y=455,Width=292,Height=22} dock=None vis=False z=25
-      Label '0%' bounds={X=232,Y=483,Width=76,Height=18} dock=None vis=False z=26
-      Label '锐化' bounds={X=16,Y=483,Width=208,Height=18} dock=None vis=False z=27
-      FlatSlider '' bounds={X=16,Y=500,Width=292,Height=22} dock=None vis=False z=28
-      FlatButton '自动增强' bounds={X=16,Y=532,Width=142,Height=32} dock=None vis=False z=29
-      FlatButton '重置滑条' bounds={X=166,Y=532,Width=142,Height=32} dock=None vis=False z=30
-      FlatButton '应用调色' bounds={X=16,Y=574,Width=292,Height=38} dock=None vis=False z=31
+      Label '过暗用【自动增强】；数值可点击直' bounds={X=16,Y=44,Width=292,Height=18} dock=None vis=False z=1
+      HistogramView '' bounds={X=16,Y=74,Width=292,Height=50} dock=None vis=False z=2
+      Label '0' bounds={X=232,Y=132,Width=76,Height=18} dock=None vis=False z=3
+      Label '亮度' bounds={X=16,Y=132,Width=208,Height=18} dock=None vis=False z=4
+      FlatSlider '' bounds={X=16,Y=149,Width=292,Height=22} dock=None vis=False z=5
+      Label '0' bounds={X=232,Y=177,Width=76,Height=18} dock=None vis=False z=6
+      Label '对比度' bounds={X=16,Y=177,Width=208,Height=18} dock=None vis=False z=7
+      FlatSlider '' bounds={X=16,Y=194,Width=292,Height=22} dock=None vis=False z=8
+      Label '0' bounds={X=232,Y=222,Width=76,Height=18} dock=None vis=False z=9
+      Label '饱和度' bounds={X=16,Y=222,Width=208,Height=18} dock=None vis=False z=10
+      FlatSlider '' bounds={X=16,Y=239,Width=292,Height=22} dock=None vis=False z=11
+      Label '0' bounds={X=232,Y=267,Width=76,Height=18} dock=None vis=False z=12
+      Label '色温' bounds={X=16,Y=267,Width=208,Height=18} dock=None vis=False z=13
+      FlatSlider '' bounds={X=16,Y=284,Width=292,Height=22} dock=None vis=False z=14
+      Label '' bounds={X=16,Y=312,Width=292,Height=1} dock=None vis=False z=15
+      Label '色阶 · 白底黑字校准' bounds={X=16,Y=326,Width=292,Height=20} dock=None vis=False z=16
+      Label '0' bounds={X=232,Y=350,Width=76,Height=18} dock=None vis=False z=17
+      Label '黑场' bounds={X=16,Y=350,Width=208,Height=18} dock=None vis=False z=18
+      FlatSlider '' bounds={X=16,Y=367,Width=292,Height=22} dock=None vis=False z=19
+      Label '255' bounds={X=232,Y=395,Width=76,Height=18} dock=None vis=False z=20
+      Label '白场' bounds={X=16,Y=395,Width=208,Height=18} dock=None vis=False z=21
+      FlatSlider '' bounds={X=16,Y=412,Width=292,Height=22} dock=None vis=False z=22
+      Label '1.00' bounds={X=232,Y=440,Width=76,Height=18} dock=None vis=False z=23
+      Label 'Gamma' bounds={X=16,Y=440,Width=208,Height=18} dock=None vis=False z=24
+      FlatSlider '' bounds={X=16,Y=457,Width=292,Height=22} dock=None vis=False z=25
+      Label '0%' bounds={X=232,Y=485,Width=76,Height=18} dock=None vis=False z=26
+      Label '锐化' bounds={X=16,Y=485,Width=208,Height=18} dock=None vis=False z=27
+      FlatSlider '' bounds={X=16,Y=502,Width=292,Height=22} dock=None vis=False z=28
+      FlatButton '自动增强' bounds={X=16,Y=534,Width=142,Height=32} dock=None vis=False z=29
+      FlatButton '重置滑条' bounds={X=166,Y=534,Width=142,Height=32} dock=None vis=False z=30
+      FlatButton '应用调色' bounds={X=16,Y=576,Width=292,Height=38} dock=None vis=False z=31
     SealPage '' bounds={X=0,Y=0,Width=324,Height=536} dock=None vis=False z=5
       Label '印章' bounds={X=16,Y=12,Width=292,Height=26} dock=None vis=False z=0
-      Label '① 框选公章 → ② 识别印章 ' bounds={X=16,Y=44,Width=226,Height=16} dock=None vis=False z=1
-      FlatButton '① 识别印章' bounds={X=16,Y=72,Width=292,Height=40} dock=None vis=False z=2
-      Label '上色范围' bounds={X=16,Y=122,Width=292,Height=18} dock=None vis=False z=3
-      Segmented '' bounds={X=16,Y=142,Width=292,Height=32} dock=None vis=False z=4
-      Label '80' bounds={X=232,Y=182,Width=76,Height=18} dock=None vis=False z=5
-      Label '上色浓度' bounds={X=16,Y=182,Width=208,Height=18} dock=None vis=False z=6
-      FlatSlider '' bounds={X=16,Y=202,Width=292,Height=26} dock=None vis=False z=7
-      FlatButton '② 给印章上色' bounds={X=16,Y=240,Width=292,Height=40} dock=None vis=False z=8
-      FlatButton '清除标记' bounds={X=16,Y=288,Width=292,Height=32} dock=None vis=False z=9
-      Label '' bounds={X=16,Y=330,Width=292,Height=1} dock=None vis=False z=10
-      Label '区域上色 · 给圈内的字换颜色' bounds={X=16,Y=344,Width=292,Height=20} dock=None vis=False z=11
-      Label '先用顶栏【笔刷】涂抹或【框选】圈' bounds={X=16,Y=370,Width=292,Height=18} dock=None vis=False z=12
-      ColorPicker '' bounds={X=16,Y=390,Width=292,Height=34} dock=None vis=False z=13
-      Label '100' bounds={X=232,Y=432,Width=76,Height=18} dock=None vis=False z=14
-      Label '浓淡' bounds={X=16,Y=432,Width=208,Height=18} dock=None vis=False z=15
-      FlatSlider '' bounds={X=16,Y=452,Width=292,Height=26} dock=None vis=False z=16
-      FlatButton '区域上色（Ctrl+Z 可撤销）' bounds={X=16,Y=490,Width=292,Height=38} dock=None vis=False z=17
-      FlatButton '清除区域' bounds={X=16,Y=534,Width=292,Height=32} dock=None vis=False z=18
+      Label '① 框选公章 → ② 识别印章 ' bounds={X=16,Y=44,Width=292,Height=18} dock=None vis=False z=1
+      FlatButton '① 识别印章' bounds={X=16,Y=74,Width=292,Height=40} dock=None vis=False z=2
+      Label '上色范围' bounds={X=16,Y=124,Width=292,Height=18} dock=None vis=False z=3
+      Segmented '' bounds={X=16,Y=144,Width=292,Height=32} dock=None vis=False z=4
+      Label '80' bounds={X=232,Y=184,Width=76,Height=18} dock=None vis=False z=5
+      Label '上色浓度' bounds={X=16,Y=184,Width=208,Height=18} dock=None vis=False z=6
+      FlatSlider '' bounds={X=16,Y=204,Width=292,Height=26} dock=None vis=False z=7
+      FlatButton '② 给印章上色' bounds={X=16,Y=242,Width=292,Height=40} dock=None vis=False z=8
+      FlatButton '清除标记' bounds={X=16,Y=290,Width=292,Height=32} dock=None vis=False z=9
+      Label '' bounds={X=16,Y=332,Width=292,Height=1} dock=None vis=False z=10
+      Label '区域上色 · 给圈内的字换颜色' bounds={X=16,Y=346,Width=292,Height=20} dock=None vis=False z=11
+      Label '先用顶栏【笔刷】涂抹或【框选】圈' bounds={X=16,Y=372,Width=292,Height=18} dock=None vis=False z=12
+      ColorPicker '' bounds={X=16,Y=392,Width=292,Height=34} dock=None vis=False z=13
+      Label '100' bounds={X=232,Y=434,Width=76,Height=18} dock=None vis=False z=14
+      Label '浓淡' bounds={X=16,Y=434,Width=208,Height=18} dock=None vis=False z=15
+      FlatSlider '' bounds={X=16,Y=454,Width=292,Height=26} dock=None vis=False z=16
+      FlatButton '区域上色（Ctrl+Z 可撤销）' bounds={X=16,Y=492,Width=292,Height=38} dock=None vis=False z=17
+      FlatButton '清除区域' bounds={X=16,Y=536,Width=292,Height=32} dock=None vis=False z=18
     BatchPage '' bounds={X=0,Y=0,Width=324,Height=536} dock=None vis=False z=6
       Label '归档' bounds={X=16,Y=12,Width=292,Height=26} dock=None vis=False z=0
-      Label '一键处理整个文件夹：方向 / 去' bounds={X=16,Y=44,Width=288,Height=32} dock=None vis=False z=1
-      Label '一键归档（含子文件夹，走完整流水' bounds={X=16,Y=88,Width=292,Height=20} dock=None vis=False z=2
-      Segmented '' bounds={X=16,Y=114,Width=292,Height=34} dock=None vis=False z=3
-      Label '普通：速度与干净度平衡；方向只认' bounds={X=16,Y=152,Width=292,Height=34} dock=None vis=False z=4
-      FlatButton '归档本文件夹（全部）' bounds={X=16,Y=192,Width=292,Height=40} dock=None vis=False z=5
-      FlatButton '归档当前图片' bounds={X=16,Y=238,Width=292,Height=34} dock=None vis=False z=6
-      FlatButton '取消归档' bounds={X=16,Y=278,Width=292,Height=34} dock=None vis=False z=7
-      FlatProgress '' bounds={X=16,Y=318,Width=292,Height=6} dock=None vis=False z=8
-      Label '归档后自动切到输出文件夹，可直接' bounds={X=16,Y=332,Width=292,Height=34} dock=None vis=False z=9
-      Label '' bounds={X=16,Y=378,Width=292,Height=1} dock=None vis=False z=10
-      Label '输出文件夹' bounds={X=16,Y=392,Width=292,Height=20} dock=None vis=False z=11
-      Label '（打开文件夹后自动设为 已归档）' bounds={X=16,Y=418,Width=292,Height=16} dock=None vis=False z=12
-      FlatButton '选择文件夹' bounds={X=16,Y=440,Width=142,Height=30} dock=None vis=False z=13
-      FlatButton '打开' bounds={X=166,Y=440,Width=142,Height=30} dock=None vis=False z=14
+      Label '一键处理整个文件夹：方向 / 去' bounds={X=16,Y=44,Width=292,Height=18} dock=None vis=False z=1
+      Label '一键归档（含子文件夹，走完整流水' bounds={X=16,Y=74,Width=292,Height=20} dock=None vis=False z=2
+      Segmented '' bounds={X=16,Y=100,Width=292,Height=34} dock=None vis=False z=3
+      Label '普通：速度与干净度平衡；方向只认' bounds={X=16,Y=138,Width=292,Height=34} dock=None vis=False z=4
+      FlatButton '归档本文件夹（全部）' bounds={X=16,Y=178,Width=292,Height=40} dock=None vis=False z=5
+      FlatButton '归档当前图片' bounds={X=16,Y=224,Width=292,Height=34} dock=None vis=False z=6
+      FlatButton '取消归档' bounds={X=16,Y=264,Width=292,Height=34} dock=None vis=False z=7
+      FlatProgress '' bounds={X=16,Y=304,Width=292,Height=6} dock=None vis=False z=8
+      Label '归档后自动切到输出文件夹，可直接' bounds={X=16,Y=318,Width=292,Height=34} dock=None vis=False z=9
+      Label '' bounds={X=16,Y=364,Width=292,Height=1} dock=None vis=False z=10
+      Label '输出文件夹' bounds={X=16,Y=378,Width=292,Height=20} dock=None vis=False z=11
+      Label '（打开文件夹后自动设为 已归档）' bounds={X=16,Y=404,Width=292,Height=16} dock=None vis=False z=12
+      FlatButton '选择文件夹' bounds={X=16,Y=426,Width=142,Height=30} dock=None vis=False z=13
+      FlatButton '打开' bounds={X=166,Y=426,Width=142,Height=30} dock=None vis=False z=14
     ScanPage '' bounds={X=0,Y=0,Width=324,Height=536} dock=None vis=False z=7
       Label '扫描' bounds={X=16,Y=12,Width=292,Height=26} dock=None vis=False z=0
-      Label '接上扫描仪直接扫进程序，存到指定' bounds={X=16,Y=44,Width=216,Height=16} dock=None vis=False z=1
-      Label '扫描设备' bounds={X=16,Y=72,Width=292,Height=18} dock=None vis=False z=2
-      FlatButton '' bounds={X=16,Y=92,Width=30,Height=30} dock=None vis=False z=3
-      FlatButton '' bounds={X=278,Y=92,Width=30,Height=30} dock=None vis=False z=4
-      Label '正在查找设备…' bounds={X=50,Y=92,Width=224,Height=30} dock=None vis=False z=5
-      FlatButton '刷新设备列表' bounds={X=16,Y=128,Width=292,Height=30} dock=None vis=False z=6
-      Label '分辨率' bounds={X=16,Y=166,Width=292,Height=18} dock=None vis=False z=7
-      Segmented '' bounds={X=16,Y=186,Width=292,Height=32} dock=None vis=False z=8
-      Label '色彩' bounds={X=16,Y=226,Width=292,Height=18} dock=None vis=False z=9
-      Segmented '' bounds={X=16,Y=246,Width=292,Height=32} dock=None vis=False z=10
-      Label '保存到' bounds={X=16,Y=286,Width=292,Height=18} dock=None vis=False z=11
-      Segmented '' bounds={X=16,Y=306,Width=292,Height=32} dock=None vis=False z=12
-      Label '输出格式' bounds={X=16,Y=346,Width=292,Height=18} dock=None vis=False z=13
-      Segmented '' bounds={X=16,Y=366,Width=292,Height=32} dock=None vis=False z=14
-      Label '（还没打开文件夹——请先点工具栏' bounds={X=16,Y=406,Width=292,Height=16} dock=None vis=False z=15
-      FlatButton '选择文件夹' bounds={X=16,Y=426,Width=142,Height=30} dock=None vis=False z=16
-      FlatButton '打开' bounds={X=166,Y=426,Width=142,Height=30} dock=None vis=False z=17
-      FlatButton '开始扫描' bounds={X=16,Y=464,Width=292,Height=40} dock=None vis=False z=18
-      FlatButton '取消扫描' bounds={X=16,Y=464,Width=292,Height=40} dock=None vis=False z=19
-      FlatProgress '' bounds={X=16,Y=510,Width=292,Height=6} dock=None vis=False z=20
-      Label '' bounds={X=16,Y=522,Width=292,Height=44} dock=None vis=False z=21
+      Label '接上扫描仪直接扫进程序，存到指定' bounds={X=16,Y=44,Width=292,Height=18} dock=None vis=False z=1
+      Label '扫描设备' bounds={X=16,Y=74,Width=292,Height=18} dock=None vis=False z=2
+      FlatButton '' bounds={X=16,Y=94,Width=30,Height=30} dock=None vis=False z=3
+      FlatButton '' bounds={X=278,Y=94,Width=30,Height=30} dock=None vis=False z=4
+      Label '正在查找设备…' bounds={X=50,Y=94,Width=224,Height=30} dock=None vis=False z=5
+      FlatButton '刷新设备列表' bounds={X=16,Y=130,Width=292,Height=30} dock=None vis=False z=6
+      Label '分辨率' bounds={X=16,Y=168,Width=292,Height=18} dock=None vis=False z=7
+      Segmented '' bounds={X=16,Y=188,Width=292,Height=32} dock=None vis=False z=8
+      Label '色彩' bounds={X=16,Y=228,Width=292,Height=18} dock=None vis=False z=9
+      Segmented '' bounds={X=16,Y=248,Width=292,Height=32} dock=None vis=False z=10
+      Label '保存到' bounds={X=16,Y=288,Width=292,Height=18} dock=None vis=False z=11
+      Segmented '' bounds={X=16,Y=308,Width=292,Height=32} dock=None vis=False z=12
+      Label '输出格式' bounds={X=16,Y=348,Width=292,Height=18} dock=None vis=False z=13
+      Segmented '' bounds={X=16,Y=368,Width=292,Height=32} dock=None vis=False z=14
+      Label '（还没打开文件夹——请先点工具栏' bounds={X=16,Y=408,Width=292,Height=16} dock=None vis=False z=15
+      FlatButton '选择文件夹' bounds={X=16,Y=428,Width=142,Height=30} dock=None vis=False z=16
+      FlatButton '打开' bounds={X=166,Y=428,Width=142,Height=30} dock=None vis=False z=17
+      FlatButton '开始扫描' bounds={X=16,Y=466,Width=292,Height=40} dock=None vis=False z=18
+      FlatButton '取消扫描' bounds={X=16,Y=466,Width=292,Height=40} dock=None vis=False z=19
+      FlatProgress '' bounds={X=16,Y=512,Width=292,Height=6} dock=None vis=False z=20
+      Label '' bounds={X=16,Y=524,Width=292,Height=44} dock=None vis=False z=21
     FilePage '' bounds={X=0,Y=0,Width=324,Height=536} dock=None vis=False z=8
       Label '文件' bounds={X=16,Y=12,Width=292,Height=26} dock=None vis=False z=0
-      Label '批量重命名图片、批量新建文件夹' bounds={X=16,Y=44,Width=172,Height=16} dock=None vis=False z=1
-      Label '批量重命名（当前文件夹的图片）' bounds={X=16,Y=96,Width=292,Height=20} dock=None vis=False z=2
-      Segmented '' bounds={X=16,Y=118,Width=292,Height=32} dock=None vis=False z=3
-      Label '文件名前缀' bounds={X=16,Y=158,Width=196,Height=18} dock=None vis=False z=4
-      FlatTextBox '扫描' bounds={X=212,Y=155,Width=96,Height=26} dock=None vis=False z=5
-      Label '起始编号' bounds={X=16,Y=185,Width=196,Height=18} dock=None vis=False z=6
-      FlatTextBox '1' bounds={X=212,Y=182,Width=96,Height=26} dock=None vis=False z=7
-      Label '查找（文件名里的文字）' bounds={X=16,Y=212,Width=292,Height=18} dock=None vis=False z=8
-      FlatTextBox '' bounds={X=16,Y=233,Width=292,Height=26} dock=None vis=False z=9
-      Label '替换为' bounds={X=16,Y=260,Width=292,Height=18} dock=None vis=False z=10
-      FlatTextBox '' bounds={X=16,Y=281,Width=292,Height=26} dock=None vis=False z=11
-      Label '预览' bounds={X=16,Y=308,Width=292,Height=18} dock=None vis=False z=12
-      Panel '' bounds={X=16,Y=328,Width=292,Height=72} dock=None vis=False z=13
-      FlatButton '预览并重命名' bounds={X=16,Y=430,Width=142,Height=38} dock=None vis=False z=14
-      FlatButton '撤销上次' bounds={X=166,Y=430,Width=142,Height=38} dock=None vis=False z=15
-      Label '' bounds={X=16,Y=474,Width=292,Height=18} dock=None vis=False z=16
-      Label '' bounds={X=16,Y=500,Width=292,Height=1} dock=None vis=False z=17
-      Label '批量新建文件夹（当前文件夹下）' bounds={X=16,Y=512,Width=292,Height=20} dock=None vis=False z=18
-      Label '文件夹基础名' bounds={X=16,Y=536,Width=196,Height=18} dock=None vis=False z=19
-      FlatTextBox '档案' bounds={X=212,Y=533,Width=96,Height=26} dock=None vis=False z=20
-      Label '数量（如 10 → 档案01…档' bounds={X=16,Y=563,Width=196,Height=18} dock=None vis=False z=21
-      FlatTextBox '10' bounds={X=212,Y=560,Width=96,Height=26} dock=None vis=False z=22
-      FlatButton '创建文件夹' bounds={X=16,Y=593,Width=292,Height=36} dock=None vis=False z=23
-      Label '' bounds={X=16,Y=635,Width=292,Height=18} dock=None vis=False z=24
+      Label '批量重命名图片、批量新建文件夹' bounds={X=16,Y=44,Width=292,Height=18} dock=None vis=False z=1
+      Label '批量重命名（当前文件夹的图片）' bounds={X=16,Y=98,Width=292,Height=20} dock=None vis=False z=2
+      Segmented '' bounds={X=16,Y=120,Width=292,Height=32} dock=None vis=False z=3
+      Label '文件名前缀' bounds={X=16,Y=160,Width=196,Height=18} dock=None vis=False z=4
+      FlatTextBox '扫描' bounds={X=212,Y=157,Width=96,Height=26} dock=None vis=False z=5
+      Label '起始编号' bounds={X=16,Y=187,Width=196,Height=18} dock=None vis=False z=6
+      FlatTextBox '1' bounds={X=212,Y=184,Width=96,Height=26} dock=None vis=False z=7
+      Label '查找（文件名里的文字）' bounds={X=16,Y=214,Width=292,Height=18} dock=None vis=False z=8
+      FlatTextBox '' bounds={X=16,Y=235,Width=292,Height=26} dock=None vis=False z=9
+      Label '替换为' bounds={X=16,Y=262,Width=292,Height=18} dock=None vis=False z=10
+      FlatTextBox '' bounds={X=16,Y=283,Width=292,Height=26} dock=None vis=False z=11
+      Label '预览' bounds={X=16,Y=310,Width=292,Height=18} dock=None vis=False z=12
+      Panel '' bounds={X=16,Y=330,Width=292,Height=72} dock=None vis=False z=13
+      FlatButton '预览并重命名' bounds={X=16,Y=432,Width=142,Height=38} dock=None vis=False z=14
+      FlatButton '撤销上次' bounds={X=166,Y=432,Width=142,Height=38} dock=None vis=False z=15
+      Label '' bounds={X=16,Y=476,Width=292,Height=18} dock=None vis=False z=16
+      Label '' bounds={X=16,Y=502,Width=292,Height=1} dock=None vis=False z=17
+      Label '批量新建文件夹（当前文件夹下）' bounds={X=16,Y=514,Width=292,Height=20} dock=None vis=False z=18
+      Label '文件夹基础名' bounds={X=16,Y=538,Width=196,Height=18} dock=None vis=False z=19
+      FlatTextBox '档案' bounds={X=212,Y=535,Width=96,Height=26} dock=None vis=False z=20
+      Label '数量（如 10 → 档案01…档' bounds={X=16,Y=565,Width=196,Height=18} dock=None vis=False z=21
+      FlatTextBox '10' bounds={X=212,Y=562,Width=96,Height=26} dock=None vis=False z=22
+      FlatButton '创建文件夹' bounds={X=16,Y=595,Width=292,Height=36} dock=None vis=False z=23
+      Label '' bounds={X=16,Y=637,Width=292,Height=18} dock=None vis=False z=24
     TextPage '' bounds={X=0,Y=0,Width=324,Height=536} dock=None vis=False z=9
       Label '文字' bounds={X=16,Y=12,Width=292,Height=26} dock=None vis=False z=0
-      Label '画面上单击即可加字；选中后可改样' bounds={X=16,Y=44,Width=194,Height=16} dock=None vis=False z=1
-      Label '文字样式（先打开一张图片）' bounds={X=16,Y=72,Width=292,Height=18} dock=None vis=False z=2
-      FlatDropDown '' bounds={X=16,Y=94,Width=292,Height=32} dock=None vis=False z=3
-      Label '36' bounds={X=232,Y=134,Width=76,Height=18} dock=None vis=False z=4
-      Label '字号（像素）' bounds={X=16,Y=134,Width=208,Height=18} dock=None vis=False z=5
-      FlatSlider '' bounds={X=16,Y=154,Width=292,Height=26} dock=None vis=False z=6
-      Label '颜色' bounds={X=16,Y=194,Width=292,Height=18} dock=None vis=False z=7
-      ColorPicker '' bounds={X=16,Y=214,Width=292,Height=34} dock=None vis=False z=8
-      FlatToggle '' bounds={X=16,Y=256,Width=46,Height=32} dock=None vis=False z=9
-      FlatToggle '' bounds={X=70,Y=256,Width=46,Height=32} dock=None vis=False z=10
-      FlatToggle '' bounds={X=124,Y=256,Width=46,Height=32} dock=None vis=False z=11
-      Label '加粗 / 斜体 / 下划线' bounds={X=184,Y=262,Width=124,Height=18} dock=None vis=False z=12
-      Label '对齐' bounds={X=16,Y=296,Width=292,Height=18} dock=None vis=False z=13
-      FlatToggle '' bounds={X=16,Y=316,Width=92,Height=32} dock=None vis=False z=14
-      FlatToggle '' bounds={X=116,Y=316,Width=92,Height=32} dock=None vis=False z=15
-      FlatToggle '' bounds={X=216,Y=316,Width=92,Height=32} dock=None vis=False z=16
-      FlatButton '烙印到图片' bounds={X=16,Y=358,Width=292,Height=40} dock=None vis=False z=17
-      FlatButton '上移一层' bounds={X=16,Y=406,Width=142,Height=32} dock=None vis=False z=18
-      FlatButton '下移一层' bounds={X=166,Y=406,Width=142,Height=32} dock=None vis=False z=19
-      FlatButton '删除选中文字' bounds={X=16,Y=446,Width=292,Height=32} dock=None vis=False z=20
+      Label '画面上单击即可加字；选中后可改样' bounds={X=16,Y=44,Width=292,Height=18} dock=None vis=False z=1
+      Label '文字样式（先打开一张图片）' bounds={X=16,Y=74,Width=292,Height=18} dock=None vis=False z=2
+      FlatDropDown '' bounds={X=16,Y=96,Width=292,Height=32} dock=None vis=False z=3
+      Label '36' bounds={X=232,Y=136,Width=76,Height=18} dock=None vis=False z=4
+      Label '字号（像素）' bounds={X=16,Y=136,Width=208,Height=18} dock=None vis=False z=5
+      FlatSlider '' bounds={X=16,Y=156,Width=292,Height=26} dock=None vis=False z=6
+      Label '颜色' bounds={X=16,Y=196,Width=292,Height=18} dock=None vis=False z=7
+      ColorPicker '' bounds={X=16,Y=216,Width=292,Height=34} dock=None vis=False z=8
+      FlatToggle '' bounds={X=16,Y=258,Width=46,Height=32} dock=None vis=False z=9
+      FlatToggle '' bounds={X=70,Y=258,Width=46,Height=32} dock=None vis=False z=10
+      FlatToggle '' bounds={X=124,Y=258,Width=46,Height=32} dock=None vis=False z=11
+      Label '加粗 / 斜体 / 下划线' bounds={X=184,Y=264,Width=124,Height=18} dock=None vis=False z=12
+      Label '对齐' bounds={X=16,Y=298,Width=292,Height=18} dock=None vis=False z=13
+      FlatToggle '' bounds={X=16,Y=318,Width=92,Height=32} dock=None vis=False z=14
+      FlatToggle '' bounds={X=116,Y=318,Width=92,Height=32} dock=None vis=False z=15
+      FlatToggle '' bounds={X=216,Y=318,Width=92,Height=32} dock=None vis=False z=16
+      FlatButton '烙印到图片' bounds={X=16,Y=360,Width=292,Height=40} dock=None vis=False z=17
+      FlatButton '上移一层' bounds={X=16,Y=408,Width=142,Height=32} dock=None vis=False z=18
+      FlatButton '下移一层' bounds={X=166,Y=408,Width=142,Height=32} dock=None vis=False z=19
+      FlatButton '删除选中文字' bounds={X=16,Y=448,Width=292,Height=32} dock=None vis=False z=20
 Panel '' bounds={X=0,Y=654,Width=1080,Height=26} dock=Bottom vis=True z=5
   Label '' bounds={X=16,Y=6,Width=520,Height=18} dock=None vis=True z=0
   Label '笔刷：涂抹要去除的区域' bounds={X=600,Y=6,Width=464,Height=18} dock=None vis=True z=1

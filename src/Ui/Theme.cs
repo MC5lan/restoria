@@ -149,6 +149,26 @@ namespace PicTool
 
         static string PickFace()
         {
+            // PICTOOL_UI_FACE 强制指定界面字体，用于验证"换字体后布局快照是否还一致"。
+            // 正常运行时不存在这个变量，行为完全不变。
+            // 存在的理由：布局基线跨机器失配的最可能原因就是字体度量差异
+            // （同一句话在 雅黑UI 是 219x15、在 Segoe UI 是 229x16），
+            // 没有这个开关就无法在单机上复现"另一台机器的字体"。
+            string forced = null;
+            try { forced = Environment.GetEnvironmentVariable("PICTOOL_UI_FACE"); }
+            catch { }
+            if (forced != null && forced.Length > 0)
+            {
+                try
+                {
+                    InstalledFontCollection fc = new InstalledFontCollection();
+                    FontFamily[] ff = fc.Families;
+                    for (int i = 0; i < ff.Length; i++)
+                        if (string.Compare(ff[i].Name, forced, true) == 0) return ff[i].Name;
+                }
+                catch { }
+            }
+
             string[] want = { "Microsoft YaHei UI", "Microsoft YaHei", "微软雅黑", "Segoe UI" };
             try
             {

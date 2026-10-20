@@ -237,14 +237,33 @@ namespace PicTool
                 s.ForeColor = Theme.TextMuted;
                 // 自适应高度（排版约定）：按内容自动换行、按实际行数占位。
                 // 原来固定 34 高 + 36 占位 —— 短文案时文字顶上、长文案时贴住下一个控件。
-                s.AutoSize = true;
-                s.MaximumSize = new Size(w, 0);
-                s.Location = new Point(x, y);
+                int subH;
+                if (DeterministicLayout)
+                {
+                    // 诊断模式：高度取与字体无关的常量，让 y 累加在任何机器上算出
+                    // 同一个值。AutoSize 的宽高是字体实测值（实测同一句话：
+                    // 雅黑 UI 219x15、Segoe UI 229x16），留在布局里就等于把基线
+                    // 绑死在生成它的那台机器上。
+                    s.AutoSize = false;
+                    subH = SnapSubHeight;
+                    s.Bounds = new Rectangle(x, y, w, subH);
+                }
+                else
+                {
+                    s.AutoSize = true;
+                    s.MaximumSize = new Size(w, 0);
+                    s.Location = new Point(x, y);
+                    subH = s.Height;
+                }
                 host.Controls.Add(s);
-                y += s.Height + 12;        // 说明 → 第一个控件
+                y += subH + 12;            // 说明 → 第一个控件
             }
             return y;
         }
+
+        // 诊断模式下说明标签的固定高度。取 18 = 一行 11px 文字 + 一点行距，
+        // 与任何字体度量无关 —— 这是它能跨机器比较的全部理由。
+        const int SnapSubHeight = 18;
 
         public void Divider(Panel host, int x, int y, int w)
         {

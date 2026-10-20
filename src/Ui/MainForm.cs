@@ -13,6 +13,16 @@ namespace PicTool
 
     public partial class MainForm : Form, IPageHost
     {
+        // 诊断模式（--layout / --layout-check）下让布局与字体度量无关。
+        //
+        // 为什么需要：页面说明标签用 AutoSize，高度是字体实测值。同一句话
+        // 在「微软雅黑 UI」量出来 219x15，在「Segoe UI」是 229x16 —— 差 1px，
+        // 而 y += 高度 + 12 会把它放大到整页所有后续控件。基线在一台机器上生成、
+        // 在另一台上必然对不上，CI（英文镜像，没有雅黑）因此永远红。
+        //
+        // 打开它只在诊断时生效，产品运行时的外观完全不变。
+        public static bool DeterministicLayout;
+
         // ---------- 数据 ----------
         List<Doc> docs = new List<Doc>();
         List<WsItem> items = new List<WsItem>();

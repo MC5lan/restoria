@@ -314,6 +314,10 @@ namespace PicTool
                 //     if errorlevel 1 (exit /b 1)
                 // 这两行，但 --layout 从来不设退出码，所以那个判断永远不会成立，
                 // 这一步在 CI 上一直是"绿的空壳"。门禁只有在能失败的时候才是门禁。
+                //
+                // DeterministicLayout 打开后再建窗体：快照必须与字体度量无关，
+                // 否则同一份代码在没装微软雅黑的机器（CI）上必然算出不同的布局。
+                MainForm.DeterministicLayout = true;
                 MainForm f = new MainForm(null);
                 f.DumpLayout();
 
@@ -410,58 +414,80 @@ namespace PicTool
         //
         // 只比较，不改基线。基线只能由 --regen-layout（gate.py）显式重建：
         // 门禁自己把基线改成"当前状态"的话，它就永远通过，也就没有意义了。
+        //
+        // 差异明细写 UTF-8 文件，控制台只留一句 ASCII 摘要。理由：程序在
+        // 英文 Windows 上 Console 的编码是 cp1252，写中文会抛异常或被替换掉，
+        // 调用方（CI）读到的就是一堆问号，正则匹配不到任何东西 —— 那样门禁
+        // 红了却没人知道为什么，和永远绿一样没用。
         static int CompareLayout(string gold, string snapshot)
         {
+            string diffPath = Path.Combine(Path.GetTempPath(), "PicTool-layout-diff.txt");
+            System.Text.StringBuilder detail = new System.Text.StringBuilder();
+            int rc = 1;
             try
             {
                 if (!File.Exists(gold))
                 {
-                    Console.Error.WriteLine("布局基线不存在: " + gold);
-                    Console.Error.WriteLine("先跑 python tools\\gate.py --regen-layout");
-                    return 1;
+                    detail.AppendLine("基线不存在: " + gold);
+                    detail.AppendLine("先跑 python tools\\gate.py --regen-layout");
+                    Console.Error.WriteLine("LAYOUT: baseline missing");
                 }
-                if (!File.Exists(snapshot))
+                else if (!File.Exists(snapshot))
                 {
-                    Console.Error.WriteLine("快照未生成: " + snapshot);
-                    return 1;
+                    detail.AppendLine("快照未生成: " + snapshot);
+                    Console.Error.WriteLine("LAYOUT: snapshot missing");
                 }
-
-                string[] a = File.ReadAllLines(snapshot, System.Text.Encoding.UTF8);
-                string[] b = File.ReadAllLines(gold, System.Text.Encoding.UTF8);
-
-                int n = Math.Min(a.Length, b.Length);
-                int diff = 0;
-                for (int i = 0; i < n && diff < 10; i++)
+                else
                 {
-                    string x = a[i].TrimEnd('\r');
-                    string y = b[i].TrimEnd('\r');
-                    if (x == y) continue;
-                    diff++;
-                    Console.Error.WriteLine("行 " + (i + 1) + " 不一致");
-                    Console.Error.WriteLine("  当前: " + x.Trim());
-                    Console.Error.WriteLine("  基线: " + y.Trim());
-                }
+                    string[] a = File.ReadAllLines(snapshot, System.Text.Encoding.UTF8);
+                    string[] b = File.ReadAllLines(gold, System.Text.Encoding.UTF8);
 
-                if (a.Length != b.Length)
-                {
-                    Console.Error.WriteLine("行数不同：当前 " + a.Length + " 行，基线 " + b.Length + " 行");
-                    return 1;
-                }
-                if (diff > 0)
-                {
-                    Console.Error.WriteLine("布局与基线不一致（至少 " + diff + " 处）。");
-                    Console.Error.WriteLine("若这次改动是有意的，请跑 --regen-layout 更新基线并在提交里说明。");
-                    return 1;
-                }
+                    int shown = 0;
+                    int n = Math.Min(a.Length, b.Length);
+                    for (int i = 0; i < n; i++)
+                    {
+                        string x = a[i].TrimEnd('\r');
+                        string y = b[i].TrimEnd('\r');
+                        if (x == y) continue;
+                        if (shown < 20)
+                        {
+                            detail.AppendLine("行 " + (i + 1) + " 不一致");
+                            detail.AppendLine("  当前: " + x.Trim());
+                            detail.AppendLine("  基线: " + y.Trim());
+                        }
+                        shown++;
+                    }
 
-                Console.WriteLine("布局与基线一致（" + a.Length + " 行）。");
-                return 0;
+                    if (a.Length != b.Length)
+                        detail.AppendLine("行数不同：当前 " + a.Length + " 行，基线 " + b.Length + " 行");
+
+                    if (shown == 0 && a.Length == b.Length)
+                    {
+                        detail.AppendLine("布局与基线一致（" + a.Length + " 行）。");
+                        Console.WriteLine("LAYOUT: identical (" + a.Length + " rows)");
+                        rc = 0;
+                    }
+                    else
+                    {
+                        detail.AppendLine();
+                        detail.AppendLine("共 " + shown + " 处不同。");
+                        detail.AppendLine("若这次改动是有意的，请跑 --regen-layout 更新基线并在提交里说明。");
+                        Console.Error.WriteLine("LAYOUT: mismatch, " + shown + " rows differ");
+                    }
+                }
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine("比较失败: " + ex.Message);
-                return 1;
+                detail.AppendLine("比较失败: " + ex.Message);
+                Console.Error.WriteLine("LAYOUT: compare failed (" + ex.GetType().Name + ")");
             }
+
+            try
+            {
+                File.WriteAllText(diffPath, detail.ToString(), System.Text.Encoding.UTF8);
+            }
+            catch { }
+            return rc;
         }
 
         static void WriteEnvReport()

@@ -409,7 +409,12 @@ namespace PicTool
                 string txt = "";
                 try { txt = c.Text; } catch { }
                 if (txt.Length > 16) txt = txt.Substring(0, 16);
-                sb.AppendLine(pad + c.GetType().Name + " '" + txt + "' bounds=" + c.Bounds +
+                // AutoSize 控件的高度是字体实测值（Label 15 vs 16、TextBox 14 vs 15，
+                // 换个字体就变），记实际值等于给基线埋一个跨机器必然对不上的字段。
+                // 记成 auto 保留了"这是自适应的"这个事实，同时让比较不受字体影响。
+                string h = c.AutoSize ? "auto" : c.Height.ToString();
+                sb.AppendLine(pad + c.GetType().Name + " '" + txt + "' bounds={X=" + c.Left +
+                    ",Y=" + c.Top + ",Width=" + c.Width + ",Height=" + h + "}" +
                     " dock=" + c.Dock + " vis=" + c.Visible + " z=" + i);
                 if (depth < 3) DumpCtrl(c, sb, depth + 1);
             }

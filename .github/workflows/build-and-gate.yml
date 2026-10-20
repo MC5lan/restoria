@@ -40,16 +40,17 @@ jobs:
           # step was a green shell that checked nothing. --layout-check compares
           # against tools\golden-layout.txt and exits 1 on any difference.
           #
-          # The difference lines go to stderr. Step logs need authentication to
-          # download, annotations do not, so every difference is also emitted as
-          # an ::error:: annotation. A gate whose reason for failing cannot be
-          # read is only marginally better than one that never fails.
+          # The difference detail is read from a UTF-8 file the program writes,
+          # not from its stderr. On this runner the console code page cannot
+          # encode the Chinese report text, so anything read back from the
+          # console arrives as question marks -- an earlier version filtered
+          # stderr with a regex and silently matched nothing, which meant the
+          # gate failed with no readable reason at all.
           #
-          # The font check matters because the snapshot's only font-dependent
-          # control is the AutoSize description label in PageHead: if the runner
-          # lacks the UI font, that label measures differently and pushes every
-          # control below it. Printing which faces exist turns "layout changed"
-          # into either "layout changed" or "the runner is missing a font".
+          # Annotations are used because step logs need authentication to
+          # download while annotations are readable through the public API. A
+          # gate whose reason for failing cannot be read is only marginally
+          # better than one that never fails.
 
           $out = & dist\PicTool.exe --layout-check 2>&1 | ForEach-Object { "$_" }
           $rc = $LASTEXITCODE
@@ -57,29 +58,20 @@ jobs:
 
           if ($rc -ne 0) {
             Write-Host ""
-            Write-Host "=== fonts available on this runner ==="
-            try {
-              Add-Type -AssemblyName System.Drawing
-              $faces = [System.Drawing.FontFamily]::Families |
-                Where-Object { $_.Name -match 'YaHei|Yahei|SimSun|SimHei|Noto|Segoe UI$' } |
-                ForEach-Object { $_.Name }
-              if ($faces) { $faces | ForEach-Object { Write-Host ("  " + $_) } }
-              else { Write-Host "  (none of the UI faces are installed)" }
+            Write-Host "=== layout diagnostics ==="
+            foreach ($f in @('PicTool-layout-diag.txt', 'PicTool-layout-diff.txt')) {
+              $p = Join-Path $env:TEMP $f
+              Write-Host ("--- " + $f + " ---")
+              if (Test-Path $p) {
+                Get-Content $p -Encoding UTF8 | ForEach-Object {
+                  Write-Host $_
+                  if ($_ -match '不一致|当前:|基线:|行数不同|字体|DPI|height=') {
+                    Write-Host ("::error::" + $_)
+                  }
+                }
+              }
+              else { Write-Host "  (not produced)" }
             }
-            catch { Write-Host ("  font enumeration failed: " + $_.Exception.Message) }
-
-            Write-Host ""
-            Write-Host "=== layout diagnostics (written by the program) ==="
-            $diag = Join-Path $env:TEMP 'PicTool-layout-diag.txt'
-            if (Test-Path $diag) { Get-Content $diag -Encoding UTF8 | ForEach-Object { Write-Host $_ } }
-            else { Write-Host "  (no diagnostic file)" }
-
-            Write-Host ""
-            Write-Host "=== difference detail ==="
-            $out |
-              Where-Object { $_ -match '不一致|行数|基线|当前:' } |
-              Select-Object -First 12 |
-              ForEach-Object { Write-Host ("::error::" + $_) }
             exit 1
           }
 
