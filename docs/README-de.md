@@ -25,7 +25,7 @@ Die Releases stehen auf der [Releases-Seite](https://github.com/MC5lan/restoria/
 | `Restoria-setup.exe` | Einzeldatei-Installer. Doppelklick, Lizenz akzeptieren, fertig |
 | `Restoria-portable.zip` | Ohne Installation. Auspacken, `setup-boot.exe` starten |
 
-Beide Pakete enthalten die optionalen KI-Dateien und eine Win7-Kompatibilitätsebene. Der Installer prüft die .NET-Laufzeit und verifiziert vor dem Abschluss, dass die KI-Komponenten geladen werden können.
+Die beiden großen Pakete enthalten die optionalen KI-Dateien und eine Win7-Kompatibilitätsebene. Der Installer prüft die .NET-Laufzeit und verifiziert vor dem Abschluss, dass die KI-Komponenten geladen werden können. Das core-Paket enthält weder KI-Dateien noch Modelle.
 
 > **Noch nicht signiert.** Da die Binärdateien kein Code-Signaturzertifikat tragen, zeigt Windows eine Herausgeberwarnung. Wählen Sie *Weitere Informationen → Trotzdem ausführen*.
 

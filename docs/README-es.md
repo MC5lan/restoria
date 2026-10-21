@@ -25,7 +25,7 @@ Las versiones se publican en la [página de Releases](https://github.com/MC5lan/
 | `Restoria-setup.exe` | Instalador en un solo archivo. Doble clic, aceptar la licencia, listo |
 | `Restoria-portable.zip` | Sin instalación. Descomprime y ejecuta `setup-boot.exe` |
 
-Ambos paquetes incluyen los recursos de IA opcionales y una capa de compatibilidad para Win7. El instalador comprueba el entorno de ejecución .NET y verifica que los componentes de IA se carguen antes de terminar.
+Los dos paquetes de mayor tamaño incluyen los recursos de IA opcionales y una capa de compatibilidad para Win7. El instalador comprueba el entorno de ejecución .NET y verifica que los componentes de IA se carguen antes de terminar. El paquete core no incluye IA ni modelos.
 
 > **Aún sin firmar.** Como los binarios no llevan certificado de firma de código, Windows mostrará un aviso de editor desconocido. Elige *Más información → Ejecutar de todas formas*.
 

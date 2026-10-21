@@ -25,7 +25,7 @@ Les versions publiées se trouvent sur la [page Releases](https://github.com/MC5
 | `Restoria-setup.exe` | Installateur en un seul fichier. Double-clic, accepter la licence, terminé |
 | `Restoria-portable.zip` | Sans installation. Décompressez, lancez `setup-boot.exe` |
 
-Les deux paquets incluent les ressources IA facultatives et une couche de compatibilité Win7. L'installateur vérifie la présence du runtime .NET et s'assure avant de finir que les composants IA se chargent correctement.
+Les deux gros paquets incluent les ressources IA facultatives et une couche de compatibilité Win7. L'installateur vérifie la présence du runtime .NET et s'assure avant de finir que les composants IA se chargent correctement. Le paquet core, lui, ne contient ni IA ni modèles.
 
 > **Pas encore signé.** Les binaires ne portent pas de certificat de signature de code, donc Windows affiche un avertissement d'éditeur. Choisissez *Informations complémentaires → Exécuter quand même*.
 
