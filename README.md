@@ -1,10 +1,18 @@
 # Restoria
 
-Turn scanned archive pages into clean A4 archival documents — on machines as old as Windows 7.
+**Turn a folder of flatbed scans from a ring-bound archive into clean, upright A4 pages — offline, on Windows 7 through 11.**
 
-Orientation detection, deskew, denoise, stain removal, black/white level and tone, then A4 archival output. One click does what used to take a scanner operator an afternoon: turn the page, crop it, clean the specks, straighten it, lay it out.
+It reads the binding holes to decide orientation, removes dust and uneven lighting, keeps red seals red, and writes an A4 archival copy without touching the originals. One executable, no installer, no network.
 
-**One file. Double-click to run. Nothing leaves the machine.**
+**Made for** ring-bound or hole-punched files scanned at roughly 300 DPI on a flatbed.
+**Not made for** phone photos (perspective), glue-bound books (no holes to read), or book-cradle scanning with page-curve correction.
+
+Six pages, one click, one A4 folder out — a real screen recording of this build, no mock-up:
+
+![Restoria: six scanned pages archived to A4 in one click](docs/images/demo.gif)
+
+> The pages in the clip are crops of the Tang manuscript shown below, scanned in grayscale.
+> A higher-quality MP4 is in `docs/images/demo.mp4`.
 
 - **Runs on:** Windows 7 SP1 → Windows 11 (.NET Framework 4.8, AnyCPU)
 - **Interface:** hand-drawn with GDI+ and double-buffered, so it stays responsive on old hardware; light and dark themes
@@ -12,8 +20,42 @@ Orientation detection, deskew, denoise, stain removal, black/white level and ton
 
 ---
 
+## Download
+
+Releases are published on the [Releases page](https://github.com/MC5lan/restoria/releases).
+
+| Asset | What it is |
+|---|---|
+| `Restoria-core.zip` | **~1 MB. No AI, no models.** Extract, run `Restoria.exe`. The fastest way to see whether this is for you. |
+| `Restoria-setup.exe` | Full installer, ~45 MB, includes the AI payload. |
+| `Restoria-portable.zip` | Same payload, no install: extract, run `setup-boot.exe`. |
+
+The two large bundles include the optional AI assets and the Win7 compatibility layer. The core package deliberately ships neither: the program probes for the AI runtime in a child process, and if it cannot load it disables those features and says so. Everything in the core pipeline works either way.
+
+> **Not signed yet.** Windows will show a publisher warning because the binaries are not code-signed. Choose *More info → Run anyway*.
+
+**From source:** `build.bat` produces `dist\Restoria.exe`. The AI features additionally need the `ai\` folder copied next to it (see [Enabling AI features](#enabling-ai-features)).
+
+---
+
+## Other languages
+
+[中文](docs/README-zh.md) · [日本語](docs/README-ja.md) · [Deutsch](docs/README-de.md) · [Français](docs/README-fr.md) · [Español](docs/README-es.md) · [Русский](docs/README-ru.md)
+
+---
+
 ## What it does to a page
 
+A real page, before and after — a Tang-dynasty manuscript leaf, public domain:
+
+![Before and after on a real Tang-dynasty manuscript page](docs/images/real-page.png)
+
+> *Mahāratnakūṭa Sūtra*, Tang dynasty, ca. 700. The Metropolitan Museum of Art, public domain (CC0).
+> The museum captured it as a colour photograph on a black mount; the sheet was cropped out and
+> converted to grayscale — the form a text page arrives in from a flatbed. Command:
+> `Restoria.exe --archive page.tif out\ 300`. The full A4 sheet is [here](docs/images/real-a4.png).
+
+The three images below are generated from the deterministic test fixture, so they stay reproducible.
 Whole page, standard pipeline — grey paper, uneven lighting and dust go in; white paper and black type come out, laid out on A4:
 
 ![Before and after: the standard pipeline turning a grey, speckled scan into a clean A4 archival page](docs/images/pipeline.png)
@@ -27,29 +69,6 @@ A page fed in tilted is straightened as part of the same run:
 ![Before and after: a page tilted by about three degrees is straightened by the archive pipeline](docs/images/deskew.png)
 
 > These images are generated from a synthetic fixture by `tools\MakeDemo.bat`, not from real archive material — the archive samples this tool is used on are confidential. The fixture is the same deterministic page the test gates use, so the pictures cannot drift from what the code actually does.
-
----
-
-## Download
-
-Releases are published on the [Releases page](https://github.com/MC5lan/restoria/releases).
-
-| Asset | What it is |
-|---|---|
-| `Restoria-setup.exe` | Single-file installer. Double-click, accept the license, done. |
-| `Restoria-portable.zip` | No install needed. Extract, run `setup-boot.exe`. |
-
-Both bundles include the optional AI assets and a Win7 compatibility layer. The installer checks for the .NET runtime and verifies that the AI components load before finishing.
-
-> **Not signed yet.** Windows will show a publisher warning because the binaries are not code-signed. Choose *More info → Run anyway*.
-
-**From source:** `build.bat` produces `dist\Restoria.exe`. The AI features additionally need the `ai\` folder copied next to it (see [Enabling AI features](#enabling-ai-features)).
-
----
-
-## Other languages
-
-[中文](docs/README-zh.md) · [日本語](docs/README-ja.md) · [Deutsch](docs/README-de.md) · [Français](docs/README-fr.md) · [Español](docs/README-es.md) · [Русский](docs/README-ru.md)
 
 ---
 
@@ -126,6 +145,15 @@ The output is `dist\Restoria.exe`. The build script:
 
 > **About the product name:** `build.bat` compiles to the internal name `dist\PicTool.exe`, then copies it to the published name `dist\Restoria.exe` (from `appname.txt`). The two files are byte-identical. `PicTool` is the internal identifier and the assembly namespace; the name everywhere a user sees is Restoria.
 
+### Building the small core package
+
+`tools\make_core_package.ps1` builds the ~1 MB no-AI bundle (exe + config, nothing else) and can upload it to an existing release:
+
+```powershell
+.\tools\make_core_package.ps1                       # build dist\Restoria-core.zip
+.\tools\make_core_package.ps1 -Tag 1.5.8 -Upload    # attach it to that release
+```
+
 ### Enabling AI features
 
 Copy the `ai\` folder next to the exe:
@@ -198,6 +226,7 @@ Environment switches: `PICTOOL_AI_TRACE=1`, `PICTOOL_OCR_TRACE=1`, `PICTOOL_SKEW
 │   ├── check_resources.py Resource gate (LockBits pairing)
 │   ├── onnx_ops.py       ONNX operator compatibility scan (run before swapping models)
 │   ├── archive_demo.py   Before/after comparison image generator
+│   ├── make_core_package.ps1  Build/upload the ~1 MB no-AI bundle
 │   ├── make_package.ps1  Packaging chain (build → assemble → sign → self-verify)
 │   └── install/          Installer and uninstaller source
 ├── ai/                   Optional AI payload: ONNX runtime + MI-GAN + OCR models + Win7 shims
@@ -230,11 +259,12 @@ Restoria's own code is MIT licensed (see [LICENSE](LICENSE)). The components bel
 | ONNX Runtime (`ai\onnxruntime.dll`, `ai\win7\onnxruntime.dll`) | 1.14.1 | © Microsoft Corporation | MIT |
 | PP-OCRv3 detection/recognition models + dictionary (`ai\ocr\`) | PP-OCRv3 | © PaddlePaddle Authors | Apache-2.0 |
 | MI-GAN inpainting model (`ai\migan.onnx`) | 512, ICCV 2023 | © 2024 Picsart AI Research | MIT |
-| Win7 API-set compatibility shims (`ai\win7\*.dll`) | — | Microsoft forwarders | MIT |
+| Win7 API-set compatibility shims (`ai\win7\w7shim-*.dll`) | built for this project | — | MIT |
+| Win7 API-set fallback copies (`ai\win7\api-ms-win-core-*.dll`) | Windows 7 SP1 | © Microsoft Corporation | see THIRD_PARTY_NOTICES |
 
 Full license texts and details are in **[THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES)**.
 
-These components serve **only** the optional AI inpainting and seal OCR. The core pipeline — orientation, deskew, denoise, stain removal, black/white level, tone, A4 output — is pure C# with no native dependency and runs fully without the `ai\` directory. The program probes whether the AI runtime can load, in a child process, and disables those features cleanly if it cannot; no AI code path ever runs inside the main process.
+These components serve **only** the optional AI inpainting and seal OCR. The core pipeline — orientation, deskew, denoise, stain removal, black/white level, tone, A4 output — is pure C# with no native dependency and runs fully without the `ai/` directory. The program probes whether the AI runtime can load, in a child process, and disables those features cleanly if it cannot; no AI code path ever runs inside the main process.
 
 ## Acknowledgements
 
