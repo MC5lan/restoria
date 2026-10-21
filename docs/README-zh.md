@@ -25,7 +25,7 @@
 
 | 文件 | 说明 |
 |---|---|
-| [`Restoria-core.zip`](download/Restoria-core.zip) | **232 KB，无 AI、无模型。** 解压后直接运行 `Restoria.exe`。想知道它合不合用，下这个最快。 |
+| `Restoria-core.zip` | **232 KB，无 AI、无模型。** 解压后直接运行 `Restoria.exe`。想知道它合不合用，下这个最快。 |
 | `Restoria-setup.exe` | 完整安装程序，约 45 MB，含 AI 素材。 |
 | `Restoria-portable.zip` | 同样内容，免安装：解压后运行 `setup-boot.exe`。 |
 
