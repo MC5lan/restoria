@@ -1,10 +1,13 @@
 # Restoria
 
-Convierte páginas de archivo escaneadas en documentos A4 limpios — incluso en máquinas tan antiguas como Windows 7.
+**Convierte los escaneos planos de un archivo encuadernado en páginas A4 limpias y derechas — sin conexión, de Windows 7 a 11.**
 
-Detección de orientación, enderezado, eliminación de ruido, manchas, niveles de blanco y negro y tono, y luego salida en A4. Un clic hace lo que a un operador de escáner le llevaba media tarde: girar la página, recortarla, limpiar los puntos, enderezarla y maquetarla.
+La orientación se deduce de los taladros de encuadernación, se eliminan el polvo y la luz desigual, los sellos rojos siguen siendo rojos y los originales nunca se modifican. Un solo ejecutable, sin instalador, sin red.
 
-**Un solo archivo. Doble clic para ejecutarlo. Nada sale del equipo.**
+**Pensado para** expedientes encuadernados o perforados, escaneados en plano a unos 300 DPI.
+**No pensado para** fotos de móvil (perspectiva), encuadernación pegada (sin taladros) ni escáneres de cuna con corrección de curvatura.
+
+![Seis páginas, un clic, una carpeta A4](images/demo.gif)
 
 - **Funciona en:** Windows 7 SP1 hasta Windows 11 (.NET Framework 4.8, AnyCPU)
 - **Interfaz:** dibujada íntegramente con GDI+ y con doble búfer, para que no se atasque en equipos antiguos; tema claro y oscuro
@@ -18,6 +21,7 @@ Las versiones se publican en la [página de Releases](https://github.com/MC5lan/
 
 | Archivo | Qué es |
 |---|---|
+| `Restoria-core.zip` | **232 KB. Sin IA, sin modelos.** Descomprime y ejecuta `Restoria.exe`. La forma más rápida de probarlo |
 | `Restoria-setup.exe` | Instalador en un solo archivo. Doble clic, aceptar la licencia, listo |
 | `Restoria-portable.zip` | Sin instalación. Descomprime y ejecuta `setup-boot.exe` |
 
@@ -31,7 +35,25 @@ Ambos paquetes incluyen los recursos de IA opcionales y una capa de compatibilid
 
 ## Otros idiomas
 
-[English](../README.md) · [中文](README-zh.md) · [日本語](README-ja.md) · [Deutsch](README-de.md) · [Français](README-fr.md) · Русский
+[English](../README.md) · [中文](README-zh.md) · [日本語](README-ja.md) · [Deutsch](README-de.md) · [Français](README-fr.md) · [Español](README-es.md) · [Русский](README-ru.md)
+
+---
+
+## Qué le hace a una página
+
+Una página real, antes y después: un folio manuscrito de la dinastía Tang, de dominio público:
+
+![Antes y después en un manuscrito Tang real](images/real-page.png)
+
+> *Mahāratnakūṭa Sūtra*, dinastía Tang, hacia 700. Metropolitan Museum of Art, dominio público (CC0).
+> El folio se recortó de la captura del museo y se convirtió a escala de grises.
+> Comando: `Restoria.exe --archive page.tif out\ 300`. La hoja A4 final está [aquí](images/real-a4.png).
+
+![Antes y después del proceso estándar](images/pipeline.png)
+![Detalle antes y después](images/detail.png)
+![Corrección de una página inclinada](images/deskew.png)
+
+> Las tres imágenes de abajo se generan a partir de una página de prueba determinista (`tools\MakeDemo.bat`); las muestras reales son confidenciales.
 
 ---
 
@@ -71,7 +93,7 @@ Todo el paquete `ai/` son 30 archivos, unos 59 MB, y solo hace falta para la rec
 ### Garantía de calidad
 
 - **134 pruebas sin ventana** (`--selftest`): umbrales de los algoritmos, presupuesto de deshacer, ubicación de la recuperación, conflictos de atajos
-- **Regresión sobre la línea base de la interfaz** (`--layout`): prueba objetiva de que una refactorización de la interfaz no cambió nada
+- **Regresión sobre la línea base de la interfaz** (`--layout-check`): prueba objetiva de que una refactorización de la interfaz no cambió nada
 - **Cuatro puertas** (`tools/gate.py`): autopruebas, línea base de interfaz, artefacto de IA, prueba de humo de rendimiento
 - **Integración continua**: GitHub Actions compila y ejecuta las puertas en cada push
 - Regresión de paralelismo para la cadena de archivado: el modo exhaustivo da un resultado idéntico byte a byte con parallel=1/2/4
@@ -123,7 +145,7 @@ Contiene `onnxruntime.dll`, `migan.onnx`, los modelos de `ocr\` y lasvelopment d
 ```bat
 build.bat                                  :: compilar
 dist\Restoria.exe --selftest               :: 1. autopruebas de algoritmos (código 0 = correcto)
-dist\Restoria.exe --layout                 :: 2. instantánea de interfaz (comparar con la línea base)
+dist\Restoria.exe --layout-check                 :: 2. instantánea de interfaz (comparar con la línea base)
 python tools\check_resources.py --strict     :: 3. puerta de recursos (emparejamiento de LockBits)
 python tools\gate.py                       :: 4. todas las puertas, incluida la prueba de rendimiento
 ```
@@ -143,7 +165,7 @@ Modos sin ventana, para scripts e informes de errores. Los informes van a `%TEMP
 | Opción | Para qué sirve |
 |---|---|
 | `--selftest` | 134 autopruebas de algoritmos e interacción; código 0 = todas correctas |
-| `--layout` | Instantánea de interfaz (debe ser idéntica línea a línea antes y después de una refactorización) |
+| `--layout-check` | Instantánea de interfaz (debe ser idéntica línea a línea antes y después de una refactorización) |
 | `--archive <entrada> <salida> [ppp] [opciones]` | Ejecuta la cadena sin ventana |
 | `--skew-test <archivo o carpeta> [n]` | Detección de enderezado con comparación de control sobre el borde negro |
 | `--ai-check` / `--ai-check-silent` | Comprobación del entorno de IA y los modelos (silent para instalación desatendida) |

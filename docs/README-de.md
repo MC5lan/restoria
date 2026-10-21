@@ -1,10 +1,13 @@
 # Restoria
 
-Macht aus gescannten Archivseiten saubere A4-Ablage-Dokumente — auch auf Rechnern von der Güte eines Windows 7.
+**Macht aus Flachbettscans eines gebundenen Archivs saubere, aufrechte A4-Seiten — offline, unter Windows 7 bis 11.**
 
-Ausrichtungserkennung, Schräglaufkorrektur, Entrauschen, Fleckenentfernung, Schwarz-Weiß-Werte und Tonwertanpassung, dann A4-Ausgabe. Ein Klick erledigt, was eine Scanoperatorin sonst einen halben Tag kostet: Seite drehen, beschneiden, Punkte herausputzen, geradeziehen, Satz spiegeln.
+Die Ausrichtung wird aus den Bindungslöchern bestimmt, Staub und ungleichmäßiges Licht werden entfernt, rote Siegel bleiben rot, und die Originale werden nie verändert. Eine einzige EXE, kein Installer, kein Netzwerk.
 
-**Eine Datei. Doppelklick startet. Nichts verlässt den Rechner.**
+**Gedacht für** gebundene oder gelochte Akten, mit dem Flachbettscanner bei etwa 300 DPI gescannt.
+**Nicht gedacht für** Handyfotos (Perspektive), Klebebindungen (keine Löcher) oder Buchscanner mit Seitenkrümmung.
+
+![Sechs Seiten, ein Klick, ein A4-Ordner](images/demo.gif)
 
 - **Läuft auf:** Windows 7 SP1 bis Windows 11 (.NET Framework 4.8, AnyCPU)
 - **Oberfläche:** vollständig mit GDI+ gezeichnet und doppelt gepuffert, damit ältere Hardware nicht ausbremst; helles und dunkles Design
@@ -18,6 +21,7 @@ Die Releases stehen auf der [Releases-Seite](https://github.com/MC5lan/restoria/
 
 | Datei | Inhalt |
 |---|---|
+| `Restoria-core.zip` | **232 KB. Ohne KI, ohne Modelle.** Entpacken, `Restoria.exe` starten. Der schnellste Weg zum Ausprobieren |
 | `Restoria-setup.exe` | Einzeldatei-Installer. Doppelklick, Lizenz akzeptieren, fertig |
 | `Restoria-portable.zip` | Ohne Installation. Auspacken, `setup-boot.exe` starten |
 
@@ -31,7 +35,25 @@ Beide Pakete enthalten die optionalen KI-Dateien und eine Win7-Kompatibilitätse
 
 ## Weitere Sprachen
 
-[English](../README.md) · [中文](README-zh.md) · [日本語](README-ja.md) · Français · [Español](README-es.md) · [Русский](README-ru.md)
+[English](../README.md) · [中文](README-zh.md) · [日本語](README-ja.md) · [Deutsch](README-de.md) · [Français](README-fr.md) · [Español](README-es.md) · [Русский](README-ru.md)
+
+---
+
+## Was mit einer Seite passiert
+
+Eine echte Seite, vorher und nachher — ein Manuskriptblatt aus der Tang-Zeit, gemeinfrei:
+
+![Vorher/Nachher bei einem echten Tang-Manuskript](images/real-page.png)
+
+> *Mahāratnakūṭa-Sūtra*, Tang-Dynastie, um 700. Metropolitan Museum of Art, gemeinfrei (CC0).
+> Das Blatt wurde aus der Museumsaufnahme freigestellt und in Graustufen umgewandelt.
+> Befehl: `Restoria.exe --archive page.tif out\ 300`. Das fertige A4-Blatt ist [hier](images/real-a4.png).
+
+![Vorher/Nachher der Standard-Pipeline](images/pipeline.png)
+![Detail vorher/nachher](images/detail.png)
+![Schräglauf wird korrigiert](images/deskew.png)
+
+> Die drei unteren Bilder stammen von einer deterministischen Testseite (`tools\MakeDemo.bat`); echte Archivproben sind vertraulich.
 
 ---
 
@@ -71,7 +93,7 @@ Das gesamte `ai/`-Paket umfasst 30 Dateien, rund 59 MB, und wird ausschließlich
 ### Technische Absicherung
 
 - **134 Tests ohne Fenster** (`--selftest`): Algorithmus-Schwellwerte, Undo-Budget, Wiederherstellungsort, Tastenkonflikte
-- **Layout-Baseline-Regression** (`--layout`): objektiver Beleg, dass ein UI-Umbau nichts verändert hat
+- **Layout-Baseline-Regression** (`--layout-check`): objektiver Beleg, dass ein UI-Umbau nichts verändert hat
 - **Vier Tore** (`tools/gate.py`): Selbsttest, Layout-Baseline, KI-Artefakt, Leistungs-Rauchtest
 - **Continuous Integration**: GitHub Actions baut und durchläuft die Tore bei jedem Push
 - Parallelitäts-Regression für die Archiv-Pipeline: der gründliche Modus liefert bei parallel=1/2/4 byteweise identische Ergebnisse
@@ -123,7 +145,7 @@ Darin liegen `onnxruntime.dll`, `migan.onnx`, die Modelle in `ocr\` und die Shim
 ```bat
 build.bat                                  :: bauen
 dist\Restoria.exe --selftest               :: 1. Algorithmus-Selbsttest (Exitcode 0 = bestanden)
-dist\Restoria.exe --layout                 :: 2. Layout-Schnappschuss (gegen die Baseline vergleichen)
+dist\Restoria.exe --layout-check                 :: 2. Layout-Schnappschuss (gegen die Baseline vergleichen)
 python tools\check_resources.py --strict     :: 3. Ressourcen-Tor (LockBits-Paarung)
 python tools\gate.py                       :: 4. alle Tore, inklusive Leistungs-Rauchtest
 ```
@@ -143,7 +165,7 @@ Modi ohne Fenster für Skripte und Fehlerberichte. Berichte landen unter `%TEMP%
 | Schalter | Zweck |
 |---|---|
 | `--selftest` | 134 Algorithmus- und Interaktionstests; Exitcode 0 = alle bestanden |
-| `--layout` | Layout-Schnappschuss (nach einem Umbau zeilengleich) |
+| `--layout-check` | Layout-Schnappschuss (nach einem Umbau zeilengleich) |
 | `--archive <ein> <aus> [dpi] [optionen]` | Pipeline ohne Fenster ausführen |
 | `--skew-test <Datei oder Ordner> [n]` | Schräglauferkennung mit Kontrollvergleich am schwarzen Rand |
 | `--ai-check` / `--ai-check-silent` | KI-Laufzeit und Modelle prüfen (silent für unbeaufsichtigte Installation) |

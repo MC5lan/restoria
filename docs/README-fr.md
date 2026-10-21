@@ -1,10 +1,13 @@
 # Restoria
 
-Transforme des pages d'archives numérisées en documents A4 propres — y compris sur des machines aussi anciennes que Windows 7.
+**Transforme les scans à plat d'archives reliées en pages A4 propres et droites — hors ligne, de Windows 7 à 11.**
 
-Détection d'orientation, redressement, débruitage, suppression des taches, niveaux de noir et blanc et tonalité, puis mise en page A4. Un clic remplace une demi-journée de travail d'opérateur de scanner : tourner la page, la rogner, nettoyer les points, la redresser, la mettre en page.
+L'orientation est déduite des trous de reliure, la poussière et l'éclairage irrégulier sont retirés, les sceaux rouges restent rouges, et les originaux ne sont jamais modifiés. Un seul exécutable, sans instalateur, sans réseau.
 
-**Un seul fichier. Double-clic pour lancer. Rien ne quitte la machine.**
+**Prévu pour** les dossiers reliés ou perforés, scannés à plat vers 300 DPI.
+**Pas prévu pour** les photos de téléphone (perspective), les reliures collées (pas de trous) ou les scanners à berceau avec correction de courbure.
+
+![Six pages, un clic, un dossier A4](images/demo.gif)
 
 - **Fonctionne sous :** Windows 7 SP1 à Windows 11 (.NET Framework 4.8, AnyCPU)
 - **Interface :** entièrement dessinée avec GDI+ et mise en double tampon, pour rester fluide sur du matériel ancien ; thèmes clair et sombre
@@ -18,6 +21,7 @@ Les versions publiées se trouvent sur la [page Releases](https://github.com/MC5
 
 | Fichier | Description |
 |---|---|
+| `Restoria-core.zip` | **232 Ko. Sans IA, sans modèles.** Décompressez, lancez `Restoria.exe`. Le plus rapide pour essayer |
 | `Restoria-setup.exe` | Installateur en un seul fichier. Double-clic, accepter la licence, terminé |
 | `Restoria-portable.zip` | Sans installation. Décompressez, lancez `setup-boot.exe` |
 
@@ -31,7 +35,25 @@ Les deux paquets incluent les ressources IA facultatives et une couche de compat
 
 ## Autres langues
 
-[English](../README.md) · [中文](README-zh.md) · [日本語](README-ja.md) · [Deutsch](README-de.md) · Español · [Русский](README-ru.md)
+[English](../README.md) · [中文](README-zh.md) · [日本語](README-ja.md) · [Deutsch](README-de.md) · [Français](README-fr.md) · [Español](README-es.md) · [Русский](README-ru.md)
+
+---
+
+## Ce qu'il fait à une page
+
+Une vraie page, avant et après — un feuillet manuscrit de la dynastie Tang, domaine public :
+
+![Avant/après sur un manuscrit Tang réel](images/real-page.png)
+
+> *Mahāratnakūṭa Sūtra*, dynastie Tang, vers 700. Metropolitan Museum of Art, domaine public (CC0).
+> Le feuillet a été détouré de la prise de vue du musée puis converti en niveaux de gris.
+> Commande : `Restoria.exe --archive page.tif out\ 300`. La feuille A4 finale est [ici](images/real-a4.png).
+
+![Avant/après du pipeline standard](images/pipeline.png)
+![Détail avant/après](images/detail.png)
+![Redressement d'une page inclinée](images/deskew.png)
+
+> Les trois images du bas proviennent d'une page de test déterministe (`tools\MakeDemo.bat`) ; les échantillons réels sont confidentiels.
 
 ---
 
@@ -71,7 +93,7 @@ L'ensemble du paquet `ai/` représente 30 fichiers, environ 59 Mo, et n'est néc
 ### Qualité de realization
 
 - **134 tests sans fenêtre** (`--selftest`) : seuils des algorithmes, budget d'annulation, emplacement de la reprise, conflits de raccourcis
-- **Régression sur la référence d'interface** (`--layout`) : preuve objective qu'une refonte de l'interface n'a rien changé
+- **Régression sur la référence d'interface** (`--layout-check`) : preuve objective qu'une refonte de l'interface n'a rien changé
 - **Quatre verrous** (`tools/gate.py`) : auto-tests, référence d'interface, artefact IA, test de fumée des performances
 - **Intégration continue** : GitHub Actions compile et exécute les verrous à chaque push
 - Régression de parallélisme pour le pipeline d'archivage : le mode exhaustif donne un résultat identique à l'octet en parallel=1/2/4
@@ -123,7 +145,7 @@ Il contient `onnxruntime.dll`, `migan.onnx`, les modèles de `ocr\` et les shims
 ```bat
 build.bat                                  :: compiler
 dist\Restoria.exe --selftest               :: 1. auto-tests des algorithmes (code 0 = réussite)
-dist\Restoria.exe --layout                 :: 2. instantané d'interface (comparer à la référence)
+dist\Restoria.exe --layout-check                 :: 2. instantané d'interface (comparer à la référence)
 python tools\check_resources.py --strict     :: 3. verrou ressources (appariement LockBits)
 python tools\gate.py                       :: 4. tous les verrous, test de fumée des performances inclus
 ```
@@ -143,7 +165,7 @@ Modes sans fenêtre, pour les scripts et l'analyse des incidents. Les rapports a
 | Option | Rôle |
 |---|---|
 | `--selftest` | 134 auto-tests d'algorithmes et d'interactions ; code 0 = tout passe |
-| `--layout` | Instantané d'interface (doit être identique ligne à ligne avant/après refonte) |
+| `--layout-check` | Instantané d'interface (doit être identique ligne à ligne avant/après refonte) |
 | `--archive <entrée> <sortie> [ppi] [options]` | Exécute le pipeline sans fenêtre |
 | `--skew-test <fichier ou dossier> [n]` | Détection de redressement avec contrôle comparatif sur bordure noire |
 | `--ai-check` / `--ai-check-silent` | Vérification du runtime IA et des modèles (silent pour installation sans surveillance) |
