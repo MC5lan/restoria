@@ -26,7 +26,7 @@ Releases are published on the [Releases page](https://github.com/MC5lan/restoria
 
 | Asset | What it is |
 |---|---|
-| `Restoria-core.zip` | **~1 MB. No AI, no models.** Extract, run `Restoria.exe`. The fastest way to see whether this is for you. |
+| [`Restoria-core.zip`](docs/download/Restoria-core.zip) | **232 KB. No AI, no models.** Extract, run `Restoria.exe`. The fastest way to see whether this is for you. |
 | `Restoria-setup.exe` | Full installer, ~45 MB, includes the AI payload. |
 | `Restoria-portable.zip` | Same payload, no install: extract, run `setup-boot.exe`. |
 
