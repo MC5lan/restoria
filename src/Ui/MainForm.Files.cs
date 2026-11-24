@@ -29,30 +29,30 @@ namespace PicTool
 
             // ★ 右键菜单重构（实测"这个 UI 很丑"）：弃用 ListBox 纯文字
             //   DropList，改自绘 RowMenu——图标 + 分组分隔 + 危险项红色 + 悬停圆角高亮。
-            //   action 与菜单项一一对应：1=打开 2=重命名 3=删除 4=归档这张 5=归档文件夹 6=资源管理器
-            List<int> action = new List<int>();
+            //   动作码直接绑在菜单项上：1=打开 2=重命名 3=删除 4=归档这张 5=归档文件夹 6=资源管理器。
+            //   ★ 不能再维护平行 action 列表：分隔线也占 items 下标，用 Picked 去索引
+            //   "只含可见项"的列表必然错位（实测点"重命名"会执行删除到回收站）。
             RowMenu pop = new RowMenu();
-            if (it.IsParent) { pop.Add("打开上一级", "folder"); action.Add(1); }
+            if (it.IsParent) { pop.Add("打开上一级", "folder", 1); }
             else if (it.IsFolder)
             {
-                pop.Add("打开文件夹", "folder"); action.Add(1);
-                pop.Add("归档整个文件夹（含子文件夹）", "wand"); action.Add(5);
+                pop.Add("打开文件夹", "folder", 1);
+                pop.Add("归档整个文件夹（含子文件夹）", "wand", 5);
             }
             else
             {
-                pop.Add("打开这张图片", "image"); action.Add(1);
-                pop.Add("归档这张图片", "wand"); action.Add(4);
+                pop.Add("打开这张图片", "image", 1);
+                pop.Add("归档这张图片", "wand", 4);
             }
             pop.AddSep();
-            pop.Add("重命名…", "text"); action.Add(2);
-            pop.AddDanger("删除到回收站", "close"); action.Add(3);
+            pop.Add("重命名…", "text", 2);
+            pop.AddDanger("删除到回收站", "close", 3);
             pop.AddSep();
-            pop.Add("在资源管理器中显示", "external"); action.Add(6);
+            pop.Add("在资源管理器中显示", "external", 6);
             pop.Closed += delegate
             {
-                int p = pop.Picked;
-                if (p < 0 || p >= action.Count) return;
-                int a = action[p];
+                int a = pop.PickedAction;
+                if (a == 0) return;
                 // ★ 延迟一步再执行（）：Closed 回调里同步弹模态框
                 //   （确认框/重命名窗）时菜单正处在释放流程，属重入。BeginInvoke 等菜单
                 //   完全关掉后再动，动作内仍有 idx 越界检查，安全。

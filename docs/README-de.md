@@ -94,7 +94,7 @@ Das gesamte `ai/`-Paket umfasst 30 Dateien, rund 59 MB, und wird ausschließlich
 
 ### Technische Absicherung
 
-- **134 Tests ohne Fenster** (`--selftest`): Algorithmus-Schwellwerte, Undo-Budget, Wiederherstellungsort, Tastenkonflikte
+- **135 Tests ohne Fenster** (`--selftest`): Algorithmus-Schwellwerte, Undo-Budget, Wiederherstellungsort, Tastenkonflikte
 - **Layout-Baseline-Regression** (`--layout-check`): objektiver Beleg, dass ein UI-Umbau nichts verändert hat
 - **Vier Tore** (`tools/gate.py`): Selbsttest, Layout-Baseline, KI-Artefakt, Leistungs-Rauchtest
 - **Continuous Integration**: GitHub Actions baut und durchläuft die Tore bei jedem Push
@@ -166,7 +166,7 @@ Modi ohne Fenster für Skripte und Fehlerberichte. Berichte landen unter `%TEMP%
 
 | Schalter | Zweck |
 |---|---|
-| `--selftest` | 134 Algorithmus- und Interaktionstests; Exitcode 0 = alle bestanden |
+| `--selftest` | 135 Algorithmus- und Interaktionstests; Exitcode 0 = alle bestanden |
 | `--layout-check` | Layout-Schnappschuss (nach einem Umbau zeilengleich) |
 | `--archive <ein> <aus> [dpi] [optionen]` | Pipeline ohne Fenster ausführen |
 | `--skew-test <Datei oder Ordner> [n]` | Schräglauferkennung mit Kontrollvergleich am schwarzen Rand |

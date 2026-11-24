@@ -16,6 +16,10 @@ namespace PicTool
             public string Text, Icon;
             public Color? Fg;        // null = 正常文字色；Danger 红用于破坏性动作
             public bool Sep;         // 分组分隔线
+            public int Tag;          // ★ 业务动作码，直接绑在项上（0=无动作）。
+                                     //   分隔线也占一个 items 下标，绝不能再用同一个下标
+                                     //   去索引另一份"只含可见项"的平行列表 —— 那会让
+                                     //   "重命名"落到"删除"上（实测踩到，会误删数据）。
         }
 
         readonly List<Item> items = new List<Item>();
@@ -26,9 +30,20 @@ namespace PicTool
         const int SepH = 9;             // 分隔线占用高度
         const int Pad = 6;              // 菜单上下内边距
 
-        public void Add(string text, string icon) { items.Add(new Item { Text = text, Icon = icon }); }
-        public void AddDanger(string text, string icon) { items.Add(new Item { Text = text, Icon = icon, Fg = Theme.Danger }); }
+        public void Add(string text, string icon, int tag = 0) { items.Add(new Item { Text = text, Icon = icon, Tag = tag }); }
+        public void AddDanger(string text, string icon, int tag = 0) { items.Add(new Item { Text = text, Icon = icon, Fg = Theme.Danger, Tag = tag }); }
         public void AddSep() { items.Add(new Item { Sep = true }); }
+
+        // ★ 当前选中项携带的动作码。Picked 可能是分隔线或空白，返回 0 表示"没选中可执行动作"。
+        //   调用方只认这个值，不要再自己维护平行 action 列表。
+        public int PickedAction
+        {
+            get
+            {
+                int p = Picked;
+                return (p >= 0 && p < items.Count && !items[p].Sep) ? items[p].Tag : 0;
+            }
+        }
 
         // 按当前项数算菜单总高（调用 ShowAt 前用）
         public int HeightFor()

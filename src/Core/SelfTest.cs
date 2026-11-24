@@ -1569,6 +1569,42 @@ namespace PicTool
                     false, "钩子本身抛异常: " + ex.Message);
             }
 
+            // ---- 工作区右键菜单：动作码必须绑在菜单项上 ----
+            // 踩过的坑：原来 action 是平行 List<int>，分隔线占 items 下标却不占 action 下标，
+            //   Picked 直接索引 action 必然错位 —— 点"重命名"执行"删除到回收站"，
+            //   点最后一项越界变成无反应。这里逐项核对，防止再退回平行列表。
+            try
+            {
+                using (RowMenu rm = new RowMenu())
+                {
+                    rm.Add("打开这张图片", "image", 1);
+                    rm.Add("归档这张图片", "wand", 4);
+                    rm.AddSep();
+                    rm.Add("重命名…", "text", 2);
+                    rm.AddDanger("删除到回收站", "close", 3);
+                    rm.AddSep();
+                    rm.Add("在资源管理器中显示", "external", 6);
+                    int[] expect = { 1, 4, 0, 2, 3, 0, 6 };
+                    bool mapOk = true;
+                    string detail = "";
+                    for (int i = 0; i < expect.Length; i++)
+                    {
+                        rm.Picked = i;
+                        if (rm.PickedAction != expect[i])
+                        {
+                            mapOk = false;
+                            detail += "项" + i + " 期望" + expect[i] + " 实得" + rm.PickedAction + "; ";
+                        }
+                    }
+                    Case("工作区右键菜单：动作码绑在项上，分隔线不挤压动作", mapOk,
+                         mapOk ? null : detail);
+                }
+            }
+            catch (Exception ex)
+            {
+                Case("工作区右键菜单：动作码绑在项上，分隔线不挤压动作", false, "钩子异常: " + ex.Message);
+            }
+
             log.AppendLine();
             log.AppendLine("合计: 通过 " + nPass + " 项，失败 " + nFail + " 项");
             log.AppendLine(nFail == 0 ? "结论: 自检通过" : "结论: 有失败项，请看上面 [失败] 行");
