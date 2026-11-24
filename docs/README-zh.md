@@ -171,9 +171,10 @@ xcopy /e /y ai dist\ai
 ```bat
 build.bat                                  :: 编译
 dist\Restoria.exe --selftest               :: ① 算法自检（退出码 0）
-dist\Restoria.exe --layout-check           :: ② 布局与基线比对，有差异退出 1
-python tools\check_resources.py --strict   :: ③ 资源门禁（LockBits 配对）
-python tools\gate.py                       :: ④ 总门禁（含性能冒烟）
+dist\Restoria.exe --functional-audit       :: ② 功能有效性实测（量化各功能真实前后差异）
+dist\Restoria.exe --layout-check           :: ③ 布局与基线比对，有差异退出 1
+python tools\check_resources.py --strict   :: ④ 资源门禁（LockBits 配对）
+python tools\gate.py                       :: ⑤ 总门禁（含性能冒烟）
 ```
 
 布局基线在 `tools\golden-layout.txt`。UI 有意变更后用 `--regen-layout` 重新生成。
@@ -191,6 +192,7 @@ AI 产物与性能冒烟两道门禁需要固定测试页 `_probe\doc_test.png`�
 | 参数 | 用途 |
 |---|---|
 | `--selftest` | 136 项算法/交互自检，退出码 0 = 全过 |
+| `--functional-audit` | 功能有效性实测：量化各功能在合成页上的真实前后差异，退出码 0 = 没有"空壳功能" |
 | `--layout` | 导出布局快照（永远退出 0，仅供查看） |
 | `--layout-check` | 同一份快照与 `tools\golden-layout.txt` 比对，有差异退出 1 |
 | `--archive <输入> <输出> [dpi] [选项]` | 跑归档流水线 |

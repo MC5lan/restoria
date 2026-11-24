@@ -63,13 +63,14 @@ namespace PicTool
                 g.Clear(Color.FromArgb(252, 251, 248));
                 g.SmoothingMode = SmoothingMode.AntiAlias;
                 Font f = new Font("SimSun", 18f);
+                // 纯虚构测试文本：不含真实地名、人名、机构与日期。
                 string[] lines = {
-                    "进贤县三里乡人民政府",
-                    "党员电化教育工作记录",
-                    "需冲洗照片的底片共一十六片",
-                    "一九九八年二月二十八日归档",
-                    "立卷人：张建国 检查人：李秀英",
-                    "照片说明：春节期间活动",
+                    "归档检测示例页，",
+                    "这是一段虚构的示例文字。",
+                    "共记录照片一十六张，",
+                    "日期与地点均为虚构。",
+                    "立卷人：测试甲 检查人：测试乙",
+                    "照片说明：示例活动记录。",
                 };
                 for (int i = 0; i < lines.Length; i++)
                     g.DrawString(lines[i], f, Brushes.Black, new PointF(40, 60 + i * 90));
@@ -91,15 +92,16 @@ namespace PicTool
                 g.Clear(Color.FromArgb(252, 251, 248));
                 g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.SingleBitPerPixelGridFit;
                 Font f = new Font("SimSun", 28f, FontStyle.Bold);
+                // 纯虚构的测试文本：不含真实地名、机构或人名。
                 string[] lines = {
-                    "霍城县教育局委员会文件，",
-                    "关于印发年度工作考核的通知。",
-                    "为了抓好各项工作的落实、",
-                    "科学地评价学校的工作成绩；",
-                    "经教育局两委会研究决定，",
-                    "现将考核实施意见印发给你们。",
-                    "请认真遵照执行、并抓好落实。",
-                    "二〇〇七年四月二十六日归档",
+                    "归档方向检测测试页，",
+                    "这是一段用于检测的示例文字。",
+                    "每一行都有足够的汉字与标点、",
+                    "让识别引擎能够正常读取；",
+                    "内容纯属虚构不涉及真实机构，",
+                    "第二段落用于交叉校验，",
+                    "确保镜像与正向能够区分。",
+                    "测试页结束。",
                 };
                 for (int i = 0; i < lines.Length; i++)
                     g.DrawString(lines[i], f, Brushes.Black, new PointF(50, 40 + i * (h - 80) / lines.Length));
@@ -1071,12 +1073,13 @@ namespace PicTool
                     // 黑色正文（顺带守"黑字没被红保护带跑"）
                     g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.SingleBitPerPixelGridFit;
                     Font rf = new Font("SimSun", 26f, FontStyle.Bold);
+                    // 纯虚构文本，不含真实地名/机构/人名。
                     string[] rlines = {
-                        "霍城县教育局委员会文件，",
-                        "关于表彰先进集体和个人的决定。",
-                        "经研究决定、予以通报表彰；",
-                        "请各处室遵照执行并落实。",
-                        "二〇〇七年十月二十六日归档",
+                        "红色内容保护测试页，",
+                        "这是一段用于检测的示例文字。",
+                        "红框内的填写内容不得被删；",
+                        "黑字与红线都必须保留。",
+                        "测试页结束。",
                     };
                     for (int i = 0; i < rlines.Length; i++)
                         g.DrawString(rlines[i], rf, Brushes.Black, new PointF(70, 430 + i * 150));
@@ -1159,7 +1162,7 @@ namespace PicTool
                         g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.SingleBitPerPixelGridFit;
                         using (Font f = new Font("SimSun", 22f))
                             for (int i = 0; i < 3; i++)
-                                g.DrawString("霍城县教育局党支部换届选举工作报告", f, Brushes.Black,
+                                g.DrawString("虚构机构的示例工作报告文本", f, Brushes.Black,
                                              new PointF(60, 950 + i * 45));
                     }
                     return p;
@@ -1227,7 +1230,7 @@ namespace PicTool
                     using (Font f = new Font("SimSun", 22f))
                     {
                         g.DrawString("卷内文件目录", f, Brushes.Black, new PointF(300, 200));
-                        g.DrawString("一一九九八年档案", f, Brushes.Black, new PointF(280, 700));
+                        g.DrawString("测试档案文字样本", f, Brushes.Black, new PointF(280, 700));
                     }
                     using (SolidBrush b = new SolidBrush(Color.FromArgb(20, 20, 20)))
                     {

@@ -156,6 +156,14 @@ namespace PicTool
                 Environment.ExitCode = SelfTest.FailCount == 0 ? 0 : 1;
                 return;
             }
+            if (startPath == "--functional-audit")
+            {
+                // 功能有效性实测：逐功能量化"前后差异"，报告落临时目录，退出码干净。
+                string rep = FunctionalAudit.RunAll();
+                try { File.WriteAllText(Path.Combine(Path.GetTempPath(), "PicTool-functional-audit.txt"), rep, System.Text.Encoding.UTF8); } catch { }
+                Environment.ExitCode = FunctionalAudit.FailCount == 0 ? 0 : 1;
+                return;
+            }
             if (startPath == "--fstest")
             {
                 // 诊断用：验证"删除到回收站"在本机可用。

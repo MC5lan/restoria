@@ -32,6 +32,15 @@ jobs:
           dist\PicTool.exe --selftest
           if errorlevel 1 (exit /b 1)
 
+      - name: Functional effectiveness audit (--functional-audit)
+        # Self-test proves nothing regressed; this proves each feature actually
+        # does work: it measures pixel/geometry changes on synthetic pages, so
+        # a button with no algorithm behind it cannot pass CI.
+        shell: cmd
+        run: |
+          dist\PicTool.exe --functional-audit
+          if errorlevel 1 (exit /b 1)
+
       - name: Layout snapshot must match the baseline
         shell: pwsh
         run: |

@@ -51,6 +51,7 @@ TEST_IMG = os.path.join(ROOT, '_probe', 'doc_test.png')
 R_SELFTEST = os.path.join(TEMP, 'PicTool-selftest.txt')
 R_LAYOUT = os.path.join(TEMP, 'PicTool-layout.txt')
 R_AIFILL = os.path.join(TEMP, 'PicTool-ai-fill.txt')
+R_AUDIT = os.path.join(TEMP, 'PicTool-functional-audit.txt')
 
 
 def ensure_test_img():
@@ -118,7 +119,7 @@ def run_gate(args, report, label, timeout=240):
 
 # ---------------------------------------------------------------- 自检
 def gate_selftest():
-    say('== 门禁 1/4  算法自检 ==')
+    say('== 门禁 1/5  算法自检 ==')
     dt, rpt = run_gate(['--selftest'], R_SELFTEST, '自检')
     if rpt is None:
         RESULTS.append(('自检', False, '报告未生成'))
@@ -142,9 +143,34 @@ def gate_selftest():
     RESULTS.append(('自检', ok, '通过 %s / 失败 %s' % (passed, failed)))
 
 
+# ---------------------------------------------------------------- 功能有效性
+def gate_functional():
+    say('== 门禁 5/5  功能有效性实测 ==')
+    dt, rpt = run_gate(['--functional-audit'], R_AUDIT, '功能实测')
+    if rpt is None:
+        RESULTS.append(('功能实测', False, '报告未生成'))
+        return
+    text = read_text(rpt)
+    total = passed = failed = None
+    fails = []
+    for line in text.splitlines():
+        s = line.strip()
+        if s.startswith('合计'):
+            digits = ''.join(ch if ch.isdigit() else ' ' for ch in s).split()
+            if len(digits) >= 2:
+                passed, failed = int(digits[0]), int(digits[1])
+        if '[失败]' in s:
+            fails.append(s)
+    ok = (failed == 0) and passed is not None
+    say('  通过 %s 项，失败 %s 项   %.1fs' % (passed, failed, dt))
+    for f in fails:
+        say('  ' + f)
+    RESULTS.append(('功能实测', ok, '通过 %s / 失败 %s' % (passed, failed)))
+
+
 # ---------------------------------------------------------------- 布局
 def gate_layout(regen=False):
-    say('== 门禁 2/4  界面布局 ==')
+    say('== 门禁 2/5  界面布局 ==')
     dt, rpt = run_gate(['--layout'], R_LAYOUT, '布局快照')
     if rpt is None:
         RESULTS.append(('布局', False, '快照未生成'))
@@ -185,7 +211,7 @@ def gate_layout(regen=False):
 
 # ---------------------------------------------------------------- AI 产物
 def gate_aifill():
-    say('== 门禁 3/4  AI 产物 ==')
+    say('== 门禁 3/5  AI 产物 ==')
     test = ensure_test_img()
     if test is None:
         say('  失败：固定测试页不存在，且无法现场生成（跑 build.bat 后重试）')
@@ -236,7 +262,7 @@ def machine_tag():
 
 
 def gate_perf(regen=False):
-    say('== 门禁 4/4  性能冒烟 ==')
+    say('== 门禁 4/5  性能冒烟 ==')
     perf_img = ensure_test_img()
     if perf_img is None:
         say('  失败：固定测试页不存在，且无法现场生成（跑 build.bat 后重试）')
@@ -325,7 +351,7 @@ def main():
     want = [a for a in args if a.startswith('--')]
     regen = '--regen-layout' in want
     regen_perf = '--regen-perf' in want
-    run_all = not any(a in ('--selftest', '--layout', '--ai-fill', '--perf') for a in want)
+    run_all = not any(a in ('--selftest', '--functional-audit', '--layout', '--ai-fill', '--perf') for a in want)
 
     print('门禁检查 —— ' + time.strftime('%Y-%m-%d %H:%M:%S'))
     print('产物: ' + os.path.relpath(EXE, ROOT))
@@ -333,6 +359,8 @@ def main():
 
     if run_all or '--selftest' in want:
         gate_selftest()
+    if run_all or '--functional-audit' in want:
+        gate_functional()
     if run_all or '--layout' in want or regen:
         gate_layout(regen=regen)
     if run_all or '--ai-fill' in want:

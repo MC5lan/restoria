@@ -171,9 +171,10 @@ It contains `onnxruntime.dll`, `migan.onnx`, the `ocr\` models, and the `win7\` 
 ```bat
 build.bat                                  :: compile
 dist\Restoria.exe --selftest                :: 1. algorithm self-test (exit 0 = pass)
-dist\Restoria.exe --layout-check             :: 2. layout vs baseline; exits 1 on any difference
-python tools\check_resources.py --strict     :: 3. resource gate (LockBits pairing)
-python tools\gate.py                       :: 4. all gates, including the performance smoke test
+dist\Restoria.exe --functional-audit         :: 2. functional effectiveness: measures real before/after effects
+dist\Restoria.exe --layout-check             :: 3. layout vs baseline; exits 1 on any difference
+python tools\check_resources.py --strict     :: 4. resource gate (LockBits pairing)
+python tools\gate.py                       :: 5. all gates, including the performance smoke test
 ```
 
 The layout baseline lives in `tools\golden-layout.txt`. After an intentional UI change, regenerate it with `--regen-layout`.
@@ -191,6 +192,7 @@ Headless modes for scripting and bug reports. Reports land in `%TEMP%\PicTool-*.
 | Flag | Purpose |
 |---|---|
 | `--selftest` | 136 algorithm and interaction self-tests; exit 0 = all pass |
+| `--functional-audit` | Measures each feature's real effect (pixels/geometry) on synthetic pages; exit 0 = no feature is a no-op |
 | `--layout` | Export the control layout snapshot (always exits 0; for inspection only) |
 | `--layout-check` | Same snapshot, compared against `tools\golden-layout.txt`; exit 1 on any difference |
 | `--archive <in> <out> [dpi] [options]` | Run the pipeline headless |
