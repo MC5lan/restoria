@@ -1,4 +1,4 @@
-﻿﻿﻿﻿// Version.cs — 版本号唯一出处。
+﻿﻿﻿﻿﻿// Version.cs — 版本号唯一出处。
 //
 // 改版本号只动这一处：程序集版本、标题栏显示、安装脚本读的文件版本，全都跟着走。
 // 版本规则（语义化版本）：主版本.次版本.修订
@@ -9,9 +9,9 @@
 // 各版本的功能与修复记录见 CHANGELOG.md。
 using System.Reflection;
 
-[assembly: AssemblyVersion("1.6.2.0")]
-[assembly: AssemblyFileVersion("1.6.2.0")]
-[assembly: AssemblyInformationalVersion("1.6.2")]
+[assembly: AssemblyVersion("1.6.3.0")]
+[assembly: AssemblyFileVersion("1.6.3.0")]
+[assembly: AssemblyInformationalVersion("1.6.3")]
 
 [assembly: AssemblyTitle("Restoria")]
 [assembly: AssemblyProduct("Restoria")]
@@ -23,7 +23,7 @@ namespace PicTool
 {
     public static class AppInfo
     {
-        public const string Version = "1.6.2";
+        public const string Version = "1.6.3";
         public const string Name = "Restoria";
         public const string Title = Name + " " + Version;   // 窗口标题（含版本号）
         // 发行版元信息（用于安装器/卸载入口/关于页）

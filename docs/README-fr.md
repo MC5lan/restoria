@@ -94,7 +94,7 @@ L'ensemble du paquet `ai/` représente 30 fichiers, environ 59 Mo, et n'est néc
 
 ### Qualité de realization
 
-- **135 tests sans fenêtre** (`--selftest`) : seuils des algorithmes, budget d'annulation, emplacement de la reprise, conflits de raccourcis
+- **136 tests sans fenêtre** (`--selftest`) : seuils des algorithmes, budget d'annulation, emplacement de la reprise, conflits de raccourcis
 - **Régression sur la référence d'interface** (`--layout-check`) : preuve objective qu'une refonte de l'interface n'a rien changé
 - **Quatre verrous** (`tools/gate.py`) : auto-tests, référence d'interface, artefact IA, test de fumée des performances
 - **Intégration continue** : GitHub Actions compile et exécute les verrous à chaque push
@@ -166,7 +166,7 @@ Modes sans fenêtre, pour les scripts et l'analyse des incidents. Les rapports a
 
 | Option | Rôle |
 |---|---|
-| `--selftest` | 135 auto-tests d'algorithmes et d'interactions ; code 0 = tout passe |
+| `--selftest` | 136 auto-tests d'algorithmes et d'interactions ; code 0 = tout passe |
 | `--layout-check` | Instantané d'interface (doit être identique ligne à ligne avant/après refonte) |
 | `--archive <entrée> <sortie> [ppi] [options]` | Exécute le pipeline sans fenêtre |
 | `--skew-test <fichier ou dossier> [n]` | Détection de redressement avec contrôle comparatif sur bordure noire |

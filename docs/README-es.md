@@ -94,7 +94,7 @@ Todo el paquete `ai/` son 30 archivos, unos 59 MB, y solo hace falta para la rec
 
 ### Garantía de calidad
 
-- **135 pruebas sin ventana** (`--selftest`): umbrales de los algoritmos, presupuesto de deshacer, ubicación de la recuperación, conflictos de atajos
+- **136 pruebas sin ventana** (`--selftest`): umbrales de los algoritmos, presupuesto de deshacer, ubicación de la recuperación, conflictos de atajos
 - **Regresión sobre la línea base de la interfaz** (`--layout-check`): prueba objetiva de que una refactorización de la interfaz no cambió nada
 - **Cuatro puertas** (`tools/gate.py`): autopruebas, línea base de interfaz, artefacto de IA, prueba de humo de rendimiento
 - **Integración continua**: GitHub Actions compila y ejecuta las puertas en cada push
@@ -166,7 +166,7 @@ Modos sin ventana, para scripts e informes de errores. Los informes van a `%TEMP
 
 | Opción | Para qué sirve |
 |---|---|
-| `--selftest` | 135 autopruebas de algoritmos e interacción; código 0 = todas correctas |
+| `--selftest` | 136 autopruebas de algoritmos e interacción; código 0 = todas correctas |
 | `--layout-check` | Instantánea de interfaz (debe ser idéntica línea a línea antes y después de una refactorización) |
 | `--archive <entrada> <salida> [ppp] [opciones]` | Ejecuta la cadena sin ventana |
 | `--skew-test <archivo o carpeta> [n]` | Detección de enderezado con comparación de control sobre el borde negro |

@@ -109,7 +109,7 @@ The whole `ai/` payload is 30 files, about 59 MB, and is needed only for AI inpa
 
 ### Engineering
 
-- **135 headless self-tests** (`--selftest`): algorithm thresholds, undo budget, recovery location, shortcut conflicts
+- **136 headless self-tests** (`--selftest`): algorithm thresholds, undo budget, recovery location, shortcut conflicts
 - **Layout baseline regression** (`--layout-check`): compares the current control layout against a checked-in baseline and exits non-zero on any difference, which is what makes it evidence rather than a printout
 - **Four gates** (`tools/gate.py`): self-test, layout baseline, AI artifact, performance smoke test
 - **Continuous integration**: GitHub Actions builds and runs the gates on every push
@@ -190,7 +190,7 @@ Headless modes for scripting and bug reports. Reports land in `%TEMP%\PicTool-*.
 
 | Flag | Purpose |
 |---|---|
-| `--selftest` | 135 algorithm and interaction self-tests; exit 0 = all pass |
+| `--selftest` | 136 algorithm and interaction self-tests; exit 0 = all pass |
 | `--layout` | Export the control layout snapshot (always exits 0; for inspection only) |
 | `--layout-check` | Same snapshot, compared against `tools\golden-layout.txt`; exit 1 on any difference |
 | `--archive <in> <out> [dpi] [options]` | Run the pipeline headless |

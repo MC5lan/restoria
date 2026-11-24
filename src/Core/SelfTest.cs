@@ -699,6 +699,30 @@ namespace PicTool
                 sq.Dispose(); sqA4.Dispose(); trimmed.Dispose();
             }
 
+            // ---- 裁白边：深色背景 + 纸伸进一个角落 ----
+            // 踩过的坑：TrimBlank 原来取"最亮角"当纸色；黑盖板扫描件上纸张倾斜
+            // 伸进画面一角时，最亮角其实是纸，深色背景反而被当成内容，外接框
+            // 撑满整幅画面 = 背景裁不掉（普通档剥离去污后没有涂白兜底，暴露得
+            // 更明显）。改成四角亮度中位数后，3 暗 1 亮取暗，能正常裁到纸张区域。
+            {
+                Bitmap dark = new Bitmap(500, 700, PixelFormat.Format24bppRgb);
+                using (Graphics g = Graphics.FromImage(dark))
+                {
+                    g.Clear(Color.FromArgb(20, 20, 20));
+                    using (SolidBrush paper = new SolidBrush(Color.FromArgb(252, 251, 248)))
+                        g.FillRectangle(paper, -150, -150, 500, 550);   // 纸只占左上角
+                }
+                Rectangle content;
+                using (Bitmap trimmed = Imaging.TrimBlank(dark, 24, out content))
+                {
+                    Case("裁白边：深色背景上一角有纸时仍能裁出纸张区域",
+                        content.Width > 0 && content.Width < dark.Width - 100 &&
+                        content.Height > 0 && content.Height < dark.Height - 100,
+                        "外接框 " + content + "，原图 " + dark.Width + "x" + dark.Height);
+                }
+                dark.Dispose();
+            }
+
             // ---- 归档档位：极致档的去黑点更保守----
             // 用户原话："宁愿放弃消除小黑点，也要把字保留全了"。三条硬断言：
             //   ① 极致档清掉的块数不多于普通档；

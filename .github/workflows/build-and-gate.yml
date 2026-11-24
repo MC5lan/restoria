@@ -143,6 +143,37 @@ jobs:
           python tools\gate.py
         continue-on-error: true
 
+      - name: Build installer package (Inno Setup 6)
+        # The release installer is built from source on every push. A check that
+        # never builds the shipped artifact can only prove the source compiles,
+        # not that the package users download is any good.
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          # Official immutable release; downloading beats relying on winget
+          # being present/enabled on the runner image.
+          $isUrl = 'https://github.com/jrsoftware/issrc/releases/download/is-6_7_4/innosetup-6.7.4.exe'
+          $isExe = Join-Path $env:RUNNER_TEMP 'innosetup-6.7.4.exe'
+          Invoke-WebRequest -Uri $isUrl -OutFile $isExe -TimeoutSec 300
+          $p = Start-Process -FilePath $isExe -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/SP-' -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw ('Inno Setup install failed: ' + $p.ExitCode) }
+          $iscc = 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
+          if (-not (Test-Path $iscc)) { $iscc = 'C:\Program Files\Inno Setup 6\ISCC.exe' }
+          if (-not (Test-Path $iscc)) { throw 'ISCC.exe not found after install' }
+          $env:INNO_SETUP_ISCC = $iscc
+          $env:PICTOOL_NO_PAUSE = '1'
+          powershell -NoProfile -ExecutionPolicy Bypass -File tools\make_package.ps1
+          exit $LASTEXITCODE
+
+      - name: Installer end-to-end smoke
+        # Actually installs the generated package, checks files/shortcuts/
+        # uninstall registry, then silently uninstalls. Blocks a bad package.
+        if: always()
+        shell: pwsh
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File tools\smoke_e2e.ps1
+          exit $LASTEXITCODE
+
       - name: Collect gate reports
         if: always()
         shell: cmd

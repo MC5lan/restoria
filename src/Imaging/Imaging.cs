@@ -164,17 +164,41 @@ namespace PicTool
                 BitmapData d = src.LockBits(new Rectangle(0, 0, w, h), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);  // resource-ok: 解锁在 try 尾 + catch 兜底，本函数结构特殊
                 unsafe
                 {
-                    // 四角取样求纸色（取最亮的那个角，避免角落里正好有内容）
-                    int best = -1;
+                    // 四角取样求纸色。
+                    // ★ 不能只取最亮角：深色扫描背景（黑盖板/深色台面）上纸张倾斜伸进
+                    //   画面角落时，最亮角其实是纸，拿它当纸色会把整片深色背景判成"内容"，
+                    //   外接框撑满整幅画面 = 背景根本裁不掉（实测 1000x1400 深色页，
+                    //   普通档裁完仍是 1000x1400，极致档却能裁到 650x893）。
+                    //   改取四角亮度的**中位数那个角**：3 暗 1 亮 → 取暗（背景），
+                    //   3 亮 1 暗（白纸页角落有墨）→ 取亮（纸），符合直觉。
+                    //   2 亮 2 暗的歧义情况退回旧行为（最亮角），避免误伤正常白纸页。
                     int[] xs = new int[] { 0, w - 1, 0, w - 1 };
                     int[] ys = new int[] { 0, 0, h - 1, h - 1 };
-                    int pr = 255, pg = 255, pb = 255;
+                    int[] lum = new int[4];
+                    int[] cr = new int[4], cg = new int[4], cb = new int[4];
                     for (int k = 0; k < 4; k++)
                     {
                         byte* p = (byte*)d.Scan0 + ys[k] * d.Stride + xs[k] * 3;
-                        int lum = (p[2] * 29 + p[1] * 150 + p[0] * 77) >> 8;
-                        if (lum > best) { best = lum; pr = p[2]; pg = p[1]; pb = p[0]; }
+                        lum[k] = (p[2] * 29 + p[1] * 150 + p[0] * 77) >> 8;
+                        cr[k] = p[2]; cg[k] = p[1]; cb[k] = p[0];
                     }
+                    int[] order = new int[] { 0, 1, 2, 3 };
+                    Array.Sort(order, delegate(int x, int y) { return lum[x].CompareTo(lum[y]); });
+                    int pick;
+                    if (lum[order[2]] - lum[order[1]] > 64)
+                        pick = order[3];                       // 2 亮 2 暗：维持旧行为
+                    else
+                    {
+                        int mid = (lum[order[1]] + lum[order[2]]) / 2;
+                        pick = order[0];
+                        int bestDiff = int.MaxValue;
+                        for (int k = 0; k < 4; k++)
+                        {
+                            int dd = Math.Abs(lum[k] - mid);
+                            if (dd < bestDiff) { bestDiff = dd; pick = k; }
+                        }
+                    }
+                    int pr = cr[pick], pg = cg[pick], pb = cb[pick];
                     for (int y = 0; y < h; y++)
                     {
                         byte* row = (byte*)d.Scan0 + y * d.Stride;
