@@ -61,9 +61,11 @@ Eine echte Seite, vorher und nachher — ein Manuskriptblatt aus der Tang-Zeit, 
 
 ### Die Ein-Klick-Pipeline
 
-Ausrichtung → Spiegelungserkennung → Entrauschen → Schräglaufkorrektur → Schwarz-Weiß-Werte und automatischer Tonwert → A4-Ausgabe.
+**Standard (ohne Reinigung)** — Ausrichtung → Spiegelungserkennung → Schräglaufkorrektur → Zuschneiden → automatische Tonwerte → Binärisierung → A4-Ausgabe. Staub, Flecken, grauer Hintergrund und Moiré bleiben unverändert.
 
-- **Standard** — ausgewogen zwischen Tempo und Sauberkeit. Die Ausrichtung stützt sich ausschließlich auf Lochbohrungen am Bindungsrand.
+**Gründlich (vollständige Reinigung)** — zusätzlich: dunklen Rahmen entfernen, dunklen Hintergrund aufhellen, Randreste entfernen, Flecken rekonstruieren, Beleuchtung normalisieren, Moiré filtern, Punktreste entfernen (inklusive Enddurchgang nach A4).
+
+- **Standard** — **führt keinerlei Reinigungsschritt aus**. Die Ausrichtung stützt sich ausschließlich auf Lochbohrungen am Bindungsrand.
 - **Gründlich** — entfernt nur die eindeutigsten Staubpunkte und nimmt sich zurück, wenn Zeichen angekratzt würden. **Lieber bleibt ein Fleck, als dass ein Handschriftstrich verloren geht.** Seiten ohne Lochbohrungen werden per OCR ausgerichtet. Für blasse Handschriften und Bestände, bei denen Inhalt wichtiger ist als Geschwindigkeit.
 
 Die Archivierung legt **ausschließlich neue Dateien an**; das Ausgangsbild wird nicht ein einziges Byte verändert. Ein abgebrochener Lauf setzt fort, wo er stehen blieb. Jeder Stapel erzeugt einen Bericht mit Seitenmaßen, Drehwinkel und Begründung sowie Zählungen und Zeitangaben.

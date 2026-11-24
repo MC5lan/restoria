@@ -772,8 +772,12 @@ namespace PicTool
                 ArchiveOptions od = new ArchiveOptions();
                 ArchiveResult rd;
                 Bitmap odOut = ArchiveProcessor.Run(dust, od, out rd);
-                Case("撤销保险：普通档照常清掉这一页的尘点", rd.SpecksRemoved > 0,
-                    "清掉 " + rd.SpecksRemoved + " 处");
+                // ★ 普通档剥离去污：去黑点（含终筛）、光照归一化、脏块重建等整组跳过。
+                bool noClean = rd.SpecksRemoved == 0 &&
+                    rd.Steps.IndexOf("去黑点") < 0 && rd.Steps.IndexOf("光照归一化") < 0 &&
+                    rd.Steps.IndexOf("脏块重建") < 0 && rd.Steps.IndexOf("页边垃圾") < 0;
+                Case("普通档剥离去污：尘点与灰底都不再被清理（只有极致档做去污）", noClean,
+                    "清掉 " + rd.SpecksRemoved + " 处；步骤: " + rd.Steps);
                 odOut.Dispose();
 
                 ArchiveOptions ot = new ArchiveOptions();
@@ -1170,7 +1174,9 @@ namespace PicTool
                 ArchiveOptions oa = new ArchiveOptions();
                 // 只测"去黑点/脏块重建"这两段对红框内容的处理：关掉镜像(OCR)与方向检测，
                 // 免得合成页被 OCR 或几何判据翻转/旋转，让墨量对照失去意义。
-                oa.MirrorCheck = false; oa.OrientAuto = false;
+                // ★ 普通档已剥离全部去污；这里要对照"去黑点/脏块重建"两段，
+                //   显式打开去污总闸（保持普通档的非保守去黑点，才能看出保护开关的差别）。
+                oa.MirrorCheck = false; oa.OrientAuto = false; oa.CleanEnabled = true;
                 ArchiveResult ra1, ra2;
                 Bitmap rOn = ArchiveProcessor.Run(pOn, oa, out ra1);
                 inkOn = ra1.InkPixels;

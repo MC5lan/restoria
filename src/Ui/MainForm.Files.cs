@@ -361,7 +361,7 @@ namespace PicTool
                         string rptDir = string.IsNullOrEmpty(refreshFolder) ? jobs[0].OutFolder : refreshFolder;
                         StringBuilder rp = new StringBuilder();
                         rp.AppendLine("【归档报告】" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
-                        rp.AppendLine("档位：" + (archiveThorough ? "极致（保守去黑点+撤销保险）" : "普通") +
+                        rp.AppendLine("档位：" + (archiveThorough ? "极致（完整去污+保守去黑点+撤销保险）" : "普通（不做去污）") +
                                       " · 计划 " + total + " 张 · 完成 " + done +
                                       "（原样跳过 " + skipped + " · 失败 " + errors.Count + "）" +
                                       " · 耗时 " + secAll.ToString("0.0") + " 秒 · " + workers + " 页并行");

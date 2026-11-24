@@ -113,7 +113,8 @@ static class MakeDemo
         if (exe == null) { throw new Exception("Restoria.exe not found under dist/"); }
         System.Diagnostics.Process p = new System.Diagnostics.Process();
         p.StartInfo.FileName = exe;
-        p.StartInfo.Arguments = "--archive \"" + input + "\" \"" + output + "\"";
+        // ★ 演示图要展示"完整清洁"效果；普通档已剥离去污，所以这里显式走极致档。
+        p.StartInfo.Arguments = "--archive \"" + input + "\" \"" + output + "\" --thorough";
         p.StartInfo.UseShellExecute = false;
         p.StartInfo.RedirectStandardOutput = true;
         p.StartInfo.RedirectStandardError = true;

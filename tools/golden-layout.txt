@@ -118,10 +118,10 @@ Panel '' bounds={X=676,Y=52,Width=324,Height=542} dock=Right vis=True z=4
       FlatButton '清除区域' bounds={X=16,Y=536,Width=292,Height=32} dock=None vis=False z=18
     BatchPage '' bounds={X=0,Y=0,Width=324,Height=536} dock=None vis=False z=6
       Label '归档' bounds={X=16,Y=12,Width=292,Height=26} dock=None vis=False z=0
-      Label '一键处理整个文件夹：方向 / 去' bounds={X=16,Y=44,Width=292,Height=18} dock=None vis=False z=1
+      Label '一键处理文件夹：方向 / 纠偏 ' bounds={X=16,Y=44,Width=292,Height=18} dock=None vis=False z=1
       Label '一键归档（含子文件夹，走完整流水' bounds={X=16,Y=74,Width=292,Height=20} dock=None vis=False z=2
       Segmented '' bounds={X=16,Y=100,Width=292,Height=34} dock=None vis=False z=3
-      Label '普通：速度与干净度平衡；方向只认' bounds={X=16,Y=138,Width=292,Height=34} dock=None vis=False z=4
+      Label '普通：不做去污，只做方向/纠偏/' bounds={X=16,Y=138,Width=292,Height=34} dock=None vis=False z=4
       FlatButton '归档本文件夹（全部）' bounds={X=16,Y=178,Width=292,Height=40} dock=None vis=False z=5
       FlatButton '归档当前图片' bounds={X=16,Y=224,Width=292,Height=34} dock=None vis=False z=6
       FlatButton '取消归档' bounds={X=16,Y=264,Width=292,Height=34} dock=None vis=False z=7

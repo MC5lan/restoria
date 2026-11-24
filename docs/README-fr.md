@@ -61,9 +61,11 @@ Une vraie page, avant et après — un feuillet manuscrit de la dynastie Tang, d
 
 ### Le pipeline en un clic
 
-Orientation → détection de miroir → débruitage → redressement → niveaux et tonalité automatiques → sortie A4.
+**Standard (sans nettoyage)** : orientation → détection de miroir → redressement → recadrage → niveaux automatiques → binarisation → sortie A4. La poussière, les taches, le fond gris et le moiré sont conservés tels quels.
 
-- **Standard** — équilibre entre rapidité et propreté. L'orientation ne retient que la preuve physique des trous de reliure.
+**Exhaustif (nettoyage complet)** : ajoute la suppression du cadre sombre, l'éclaircissement du fond sombre, le nettoyage des bords, la reconstruction des taches, la normalisation de l'éclairage, le filtrage du moiré et la suppression des points (y compris une passe finale après A4).
+
+- **Standard** — **aucune étape de nettoyage**. L'orientation ne retient que la preuve physique des trous de reliure.
 - **Exhaustif** — ne supprime que les poussières les plus certaines et annule son propre travail s'il commence à entamer les caractères. **Préfère laisser un point plutôt que perdre un trait d'écriture manuscrite.** Les pages sans trous de reliure basculent sur une orientation par OCR. Convient aux écritures pâles et aux fonds où le contenu prime sur la vitesse.
 
 L'archivage ne fait que **créer de nouveaux fichiers** ; l'image d'origine n'est jamais modifiée, à l'octet près. Une exécution interrompue reprend où elle s'était arrêtée. Chaque lot produit un rapport indiquant, par page, les dimensions, l'angle de rotation et sa justification, ainsi que les comptes et les durées.

@@ -61,9 +61,11 @@ Una página real, antes y después: un folio manuscrito de la dinastía Tang, de
 
 ### La cadena de un clic
 
-Orientación → detección de espejo → eliminación de ruido → enderezado → niveles y tono automáticos → salida A4.
+**Estándar (sin limpieza)**: orientación → detección de espejo → enderezado → recorte → niveles automáticos → binarización → salida A4. El polvo, las manchas, el fondo gris y el moiré se conservan tal cual.
 
-- **Estándar** — equilibrio entre velocidad y limpieza. La orientación solo confía en la evidencia física de los orificios de encuadernación.
+**Exhaustivo (limpieza completa)**: añade recorte de marco oscuro, aclarado de fondo oscuro, eliminación de restos de borde, reconstrucción de manchas, normalización de iluminación, filtro de moiré y eliminación de motas (incluido un pase final tras A4).
+
+- **Estándar** — **no realiza ningún paso de limpieza**. La orientación solo confía en la evidencia física de los orificios de encuadernación.
 - **Exhaustivo** — elimina solo las motas más seguras y deshace su propio trabajo si empieza a comerse caracteres. **Antes deja una mota que perder un trazo de escritura a mano.** Las páginas sin orificios recurren a la orientación por OCR. Va bien para escrituras pálidas y fondos donde el contenido importa más que la velocidad.
 
 El archivado **solo crea archivos nuevos**; la imagen original no se modifica ni en un byte. Una ejecución interrumpida continúa donde se quedó. Cada lote genera un informe con, por página, el cambio de dimensiones, el ángulo de giro y su justificación, además de recuentos y tiempos.

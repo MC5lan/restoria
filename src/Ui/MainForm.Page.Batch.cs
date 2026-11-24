@@ -47,7 +47,7 @@ namespace PicTool
             internal void Build()
             {
                 int x = Theme.Pad, y = 12;
-                y = _mf.PageHead(this, "归档", "一键处理整个文件夹：方向 / 去污 / 色阶 / 二值化 / A4 全自动", x, y, _mf.Cw);
+                y = _mf.PageHead(this, "归档", "一键处理文件夹：方向 / 纠偏 / 裁边 / 色阶 / 二值化 / A4（去污仅极致档）", x, y, _mf.Cw);
 
                 // ---------- 一键归档 ----------
                 // ★ 归档档位（"宁愿放弃消除小黑点，也要把字保留全了，
@@ -66,7 +66,7 @@ namespace PicTool
                 lblArchiveMode.ForeColor = Theme.TextMuted;
                 lblArchiveMode.Font = Theme.F11;
                 lblArchiveMode.Bounds = new Rectangle(x, y + 38, _mf.Cw, 34);
-                lblArchiveMode.Text = "普通：速度与干净度平衡；方向只认装订孔证据。";
+                lblArchiveMode.Text = "普通：不做去污，只做方向/纠偏/裁边/色阶/二值化/A4；方向只认装订孔证据。";
                 Controls.Add(lblArchiveMode);
                 segArchiveMode.SelectedChanged += delegate
                 {
@@ -76,7 +76,7 @@ namespace PicTool
                     lblArchiveMode.Text = _mf.archiveThorough
                         ? "极致：只删最确定的尘点，删过头自动撤销；无装订孔的页用 OCR 判断方向。慢一些，字更不容易掉。" +
                           (Ocr.Available ? "" : "（本机缺 OCR 素材，方向退化为只认装订孔）")
-                        : "普通：速度与干净度平衡；方向只认装订孔证据。";
+                        : "普通：不做去污，只做方向/纠偏/裁边/色阶/二值化/A4；方向只认装订孔证据。";
                 };
                 // 启动恢复初值时也要把说明文案对上（事件只在用户点击时触发）
                 if (UiSettings.ArchiveThorough)

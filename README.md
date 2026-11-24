@@ -2,7 +2,7 @@
 
 **Turn a folder of flatbed scans from a ring-bound archive into clean, upright A4 pages — offline, on Windows 7 through 11.**
 
-It reads the binding holes to decide orientation, removes dust and uneven lighting, keeps red seals red, and writes an A4 archival copy without touching the originals. One executable, no installer, no network.
+It reads the binding holes to decide orientation, keeps red seals red, and writes an A4 archival copy without touching the originals. Exhaustive mode additionally removes dust and uneven lighting. One executable, no installer, no network.
 
 **Made for** ring-bound or hole-punched files scanned at roughly 300 DPI on a flatbed.
 **Not made for** phone photos (perspective), glue-bound books (no holes to read), or book-cradle scanning with page-curve correction.
@@ -56,7 +56,7 @@ A real page, before and after — a Tang-dynasty manuscript leaf, public domain:
 > `Restoria.exe --archive page.tif out\ 300`. The full A4 sheet is [here](docs/images/real-a4.png).
 
 The three images below are generated from the deterministic test fixture, so they stay reproducible.
-Whole page, standard pipeline — grey paper, uneven lighting and dust go in; white paper and black type come out, laid out on A4:
+Whole page, exhaustive pipeline — grey paper, uneven lighting and dust go in; white paper and black type come out, laid out on A4 (standard mode does no cleaning; the demo runs in exhaustive mode):
 
 ![Before and after: the standard pipeline turning a grey, speckled scan into a clean A4 archival page](docs/images/pipeline.png)
 
@@ -76,9 +76,11 @@ A page fed in tilted is straightened as part of the same run:
 
 ### The one-click pipeline
 
-Orientation → mirror detection → denoise → deskew → black/white level and automatic tone → A4 output.
+**Standard (no cleaning)** — orientation → mirror detection → deskew → crop → automatic levels → binarize → A4 output. Dust, stains, grey background and moiré are left untouched.
 
-- **Standard** — balanced speed and cleanliness. Orientation trusts only physical binding-hole evidence.
+**Exhaustive (full cleaning)** — adds dark-frame trim → dark-background flattening → edge-junk removal → stain reconstruction → illumination normalization → moiré notch filtering → connected-component speck removal (plus a final pass after A4).
+
+- **Standard** — **no decontamination step at all**. Orientation trusts only physical binding-hole evidence.
 - **Exhaustive** — removes only the most certain dust specks, and undoes its own work if it starts eating characters. **Would rather leave a speck than lose a single stroke of a handwritten character.** Pages without binding holes fall back to OCR-based orientation. Suits faint handwriting and records where content matters more than speed.
 
 Archiving **only ever creates new files**; the original image is never modified, byte for byte. An interrupted run resumes where it left off. Each batch produces a report listing per-page dimensions, rotation and the reason for it, plus counts and timings.
@@ -264,7 +266,7 @@ Restoria's own code is MIT licensed (see [LICENSE](LICENSE)). The components bel
 
 Full license texts and details are in **[THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES)**.
 
-These components serve **only** the optional AI inpainting and seal OCR. The core pipeline — orientation, deskew, denoise, stain removal, black/white level, tone, A4 output — is pure C# with no native dependency and runs fully without the `ai/` directory. The program probes whether the AI runtime can load, in a child process, and disables those features cleanly if it cannot; no AI code path ever runs inside the main process.
+These components serve **only** the optional AI inpainting and seal OCR. The core pipeline — orientation, deskew, crop, levels, binarization, A4 output (plus cleaning steps in exhaustive mode) — is pure C# with no native dependency and runs fully without the `ai/` directory. The program probes whether the AI runtime can load, in a child process, and disables those features cleanly if it cannot; no AI code path ever runs inside the main process.
 
 ## Acknowledgements
 

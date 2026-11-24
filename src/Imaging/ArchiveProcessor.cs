@@ -1,7 +1,14 @@
 ﻿// ArchiveProcessor.cs — 「一键归档」流水线
 //
-// 目标：把古早档案扫描图变成 **标准 A4 · 白底黑字 · 无污垢** 的归档件。
+// 目标：把古早档案扫描图变成 **标准 A4 · 白底黑字** 的归档件。
 // 方案与决策记录见 docs/一键归档流水线方案.md。
+//
+// ★ 档位与"去污"的边界（2026-11 改动）：
+//   普通档（Thorough=false）**不做任何去污** —— 去扫描黑框、深色背景涂白、
+//   边缘阴影/页边垃圾、脏块重建、光照归一化、摩尔纹陷波、去黑点(含终筛) 全部跳过；
+//   只保留 方向/镜像、纠偏、裁边、自动色阶、二值化、A4（含回二值化）。
+//   极致档（Thorough=true）执行完整清洁流水线，行为与改动前一致。
+//   所有清洁步骤统一由 ArchiveOptions.CleanEnabled 把关，别在各处另写档位判断。
 //
 // ---------------------------------------------------------------
 // 顺序（改之前先读 —— **顺序本身就是关键技术点**）：
@@ -64,6 +71,7 @@ namespace PicTool
         //   排在**所有判断之前**、对**所有页**生效 —— 包括会被"原样跳过"的彩色封面页
         //   和纯印章页：黑框是扫描仪漏光留下的垃圾，不是内容，跳过页也该修掉。
         //   （普通页的黑框 TrimBlank 本来就会裁，这里只是保证"没有漏网的"。）
+        //   ★ 受 CleanEnabled 约束：普通档不做这一步。
         public bool TrimDarkFrame = true;
         // ★ 红框内容保护：被红色闭环围住的区域 = 登记框/表格的内容区，
         //   里面的黑笔填写内容（"097"、"2p4h" 这类短字块）不许当黑点删。
@@ -77,6 +85,7 @@ namespace PicTool
         //     ② 去黑点撤销保险：删掉一个字那么大的块、或删掉的总量占页面墨量比例
         //        过高 → **整步撤销**，宁可留着黑点
         //     ③ 无装订孔证据时用 OCR 四向定向（0/90/180/270 各读一遍取最优）→ 判了就必须转
+        //     ④ 执行全部去污步骤（见 CleanEnabled）—— 普通档会把这些步骤整组跳过
         //   代价：慢（③ 最坏多跑 3 次 OCR）、页面上会留下一些没清掉的尘点。
         public bool Thorough = false;
         // ★ A4 版面自动匹配内容的横竖：转正后内容还是横的（宽>高）时
@@ -90,6 +99,20 @@ namespace PicTool
         //   24~25 行），二值化后变黑线。竖直 FFT 陷波（详见 MoireFilter），检测不
         //   显著的页自动跳过零开销。CLI --no-moire 可关。
         public bool MoireRemove = true;
+
+        // ★ 去污总闸：普通档剥离全部清洁步骤，只有极致档才做去污。
+        //   下列步骤都受它约束（对应的单个开关仍可在极致档内单独关掉）：
+        //     TrimDarkFrame / TrimShadowFrame / FlattenDarkBackground /
+        //     EdgeJunk / MoireRemove / StainFill / NormalizeLight /
+        //     RemoveSpecks（含 A4 后的终筛与终扫）
+        //   方向、纠偏、裁边、色阶、二值化、A4 不受影响。
+        //   null(默认) = 跟随档位；显式赋值仅供自检/诊断复现旧行为，正常路径不要设。
+        bool? _cleanEnabled;
+        public bool CleanEnabled
+        {
+            get { return _cleanEnabled ?? Thorough; }
+            set { _cleanEnabled = value; }
+        }
 
         // ★（P1-4）**可中断**：取消检查回调（null = 不检查）。
         //   批量归档时由 UI 传入（读 archiveCancel）；单页 Run / SelfTest 不传。
@@ -201,7 +224,8 @@ namespace PicTool
                 // ★ ⓪-前：先裁掉扫描仪留下的四周黑框。
                 //   放在所有判断（含"跳过"判断）**之前**：黑框是扫描垃圾不是内容，
                 //   连彩色封面页、纯印章页也该修 —— 否则 68 张里就那两张还挂着一圈黑。
-                if (opt.TrimDarkFrame)
+                //   ★ 普通档剥离去污：这一步也属于去污，只在极致档执行。
+                if (opt.CleanEnabled && opt.TrimDarkFrame)
                 {
                     Rectangle cutR;
                     Bitmap trimmed = Imaging.TrimDarkFrame(cur, out cutR);
@@ -231,15 +255,19 @@ namespace PicTool
                         info.Steps += "纯印章页跳过(墨" + (darkRatio * 100).ToString("0.00") + "% 章" +
                                      (redRatio * 100).ToString("0.00") + "%); ";
                         // 跳过页的边缘常挂着扫描阴影带（灰色的，不够黑，TrimDarkFrame 抓不到）
-                        // —— 这里再裁一次；白纸和印章的红色都不满足"灰"判据，不会误伤
-                        Rectangle shS;
-                        Bitmap shImg = Imaging.TrimShadowFrame(cur, out shS);
-                        if (shImg != null)
+                        // —— 极致档在这里再裁一次；白纸和印章的红色都不满足"灰"判据，不会误伤。
+                        // ★ 普通档剥离去污：边缘阴影属于去污，跳过不裁。
+                        if (opt.CleanEnabled)
                         {
-                            int sw0 = cur.Width, sh0 = cur.Height;
-                            cur.Dispose(); cur = shImg;
-                            info.Steps += "去边缘阴影 " + sw0 + "x" + sh0 + " → " +
-                                          cur.Width + "x" + cur.Height + "; ";
+                            Rectangle shS;
+                            Bitmap shImg = Imaging.TrimShadowFrame(cur, out shS);
+                            if (shImg != null)
+                            {
+                                int sw0 = cur.Width, sh0 = cur.Height;
+                                cur.Dispose(); cur = shImg;
+                                info.Steps += "去边缘阴影 " + sw0 + "x" + sh0 + " → " +
+                                              cur.Width + "x" + cur.Height + "; ";
+                            }
                         }
                         if (opt.ToA4Page)
                         {
@@ -271,15 +299,19 @@ namespace PicTool
                         info.SkippedColorCover = true;
                         info.Steps += "彩色封面页跳过(彩色占比 " + (coverRatio * 100).ToString("0") + "%); ";
                         // 同上：封面图像边缘的扫描阴影带在这里裁掉（判"灰"不判"黑"，
-                        // 红封面主体是高饱和彩色，不会被当成阴影）
-                        Rectangle shC;
-                        Bitmap shCov = Imaging.TrimShadowFrame(cur, out shC);
-                        if (shCov != null)
+                        // 红封面主体是高饱和彩色，不会被当成阴影）。
+                        // ★ 普通档剥离去污：边缘阴影属于去污，跳过不裁。
+                        if (opt.CleanEnabled)
                         {
-                            int cw0 = cur.Width, ch0 = cur.Height;
-                            cur.Dispose(); cur = shCov;
-                            info.Steps += "去边缘阴影 " + cw0 + "x" + ch0 + " → " +
-                                          cur.Width + "x" + cur.Height + "; ";
+                            Rectangle shC;
+                            Bitmap shCov = Imaging.TrimShadowFrame(cur, out shC);
+                            if (shCov != null)
+                            {
+                                int cw0 = cur.Width, ch0 = cur.Height;
+                                cur.Dispose(); cur = shCov;
+                                info.Steps += "去边缘阴影 " + cw0 + "x" + ch0 + " → " +
+                                              cur.Width + "x" + cur.Height + "; ";
+                            }
                         }
                         if (opt.ToA4Page)
                         {
@@ -304,7 +336,8 @@ namespace PicTool
 
                 //     为什么用"漫水填充"而不是"求外接框再裁"：倾斜的纸外接框≈整幅画面，
                 //     裁不出东西 —— 详见 DocClean.FlattenDarkBackground 的注释。
-                if (opt.AutoCrop)
+                // ★ 普通档剥离去污：涂白深色背景属于去污，只在极致档做。
+                if (opt.CleanEnabled && opt.AutoCrop)
                 {
                     int painted = DocClean.FlattenDarkBackground(cur, 24);
                     if (painted > 0) info.Steps += "涂白深色背景 " + painted + "px; ";
@@ -379,7 +412,8 @@ namespace PicTool
                 // ①.7 页边垃圾清除：装订孔/贴边黑条/黑角。
                 //     必须排在方向检测之后 —— 装订孔是判方向的物理证据，先清了孔
                 //     方向就没判据了。判据与安全边界见 DocClean.RemoveEdgeJunk。
-                if (opt.EdgeJunk)
+                // ★ 普通档剥离去污：页边垃圾（装订孔/黑角/贴边黑条）属于去污，只在极致档清。
+                if (opt.CleanEnabled && opt.EdgeJunk)
                 {
                     int junk = DocClean.RemoveEdgeJunk(cur);
                     if (junk > 0) info.Steps += "页边垃圾 " + junk + " 处; ";
@@ -436,7 +470,8 @@ namespace PicTool
                 //   灰度图上只有几级灰度，二值化后才变成肉眼可见的黑横线，到那边就晚了。
                 //   位置在**所有几何之后**（遵守"几何先于光度"红线）；检测不显著的页
                 //   原样跳过（零开销）。陷波只调亮度不动色相（三通道同加修正量）。
-                if (opt.MoireRemove)
+                // ★ 普通档剥离去污：摩尔纹陷波属于去污，只在极致档做。
+                if (opt.CleanEnabled && opt.MoireRemove)
                 {
                     try
                     {
@@ -461,7 +496,8 @@ namespace PicTool
                 //     （第一版排在归一化后面，实测 0 检出，就是这个原因）。
                 //     为什么用重建而不是清除：脏块面积与汉字重叠（实测 400~600 vs 400~1800），
                 //     按面积清必然连字删；PaperFill 不生成内容、只还纸面，是这个场景的正解。
-                if (opt.StainFill)
+                // ★ 普通档剥离去污：大面积脏块重建属于去污，只在极致档做。
+                if (opt.CleanEnabled && opt.StainFill)
                 {
                     int stains;
                     Bitmap smask = DocClean.DetectStainMask(cur, opt.StainMinArea, 0, 0, out stains);
@@ -667,7 +703,8 @@ namespace PicTool
                 Mark("印章");
 
                 // ⑤ 光照 / 背景归一化（去灰底、去阴影、去光照不均）
-                if (opt.NormalizeLight)
+                // ★ 普通档剥离去污：光照归一化（去灰底/去阴影/去光照不均）属于去污，只在极致档做。
+                if (opt.CleanEnabled && opt.NormalizeLight)
                 {
                     DocClean.NormalizeIlluminationInPlace(cur, opt.LightStrength, 2.5);
                     info.Steps += "光照归一化; ";
@@ -696,7 +733,8 @@ namespace PicTool
                 // ⑧ 连通域黑点过滤（必须在二值化之后，见文件头说明）
                 //    印章区内的连通域一律视为内容 —— 章里的五角星尖角、环内文字、
                 //    褪色断裂的笔画看着就像"孤立小黑块"，不保护会被当黑点直接删掉。
-                if (opt.RemoveSpecks && opt.Binarize)
+                // ★ 普通档剥离去污：连通域去黑点属于去污，只在极致档做。
+                if (opt.CleanEnabled && opt.RemoveSpecks && opt.Binarize)
                 {
                     // ★ 红框内容保护（"红框子里的黑色字样块也要保护，不能删"）：
                     //   框线是浅红细线，在"墨"的语义里不算内容 → 框里的黑笔填写块在 gap 环带内
@@ -805,7 +843,7 @@ namespace PicTool
                     //     RemoveSpecksFinal 把偏红像素当内容（印章豁免靠颜色自认，见 ⑪）。
                     //     ★ 极致档：⑦ 已经判过"这一页删得不可信"时（speckVeto），这里直接跳过
                     //       —— 否则终筛会把 ⑦ 撤销掉的那一批再删一遍，保险形同虚设（实测踩到）。
-                    if (opt.RemoveSpecks && !speckVeto)
+                    if (opt.CleanEnabled && opt.RemoveSpecks && !speckVeto)
                     {
                         // 红框内部同样护住（A4 缩放后重新现算：颜色自认，不会错位）
                         byte[] finProt = RedBoxMask(cur, opt, info, "红框内容保护(终) ");
@@ -851,7 +889,8 @@ namespace PicTool
                     // ⑬ 页边垃圾终扫：二值化会把孔的灰晕、碎裂的孔缘
                     //     重新析出成小黑斑 —— 终图上再跑一遍孔簇/角块清理
                     //     （finalPass：只清孔和角块，不碰贴边细长条，防误伤表格线）。
-                    if (opt.EdgeJunk)
+                    // ★ 普通档剥离去污：页边终扫属于去污，只在极致档做。
+                    if (opt.CleanEnabled && opt.EdgeJunk)
                     {
                         int j2 = DocClean.RemoveEdgeJunk(cur, true);
                         if (j2 > 0) info.Steps += "页边垃圾(终) " + j2 + " 处; ";
@@ -1141,25 +1180,30 @@ namespace PicTool
 
         static string Describe(ArchiveOptions o)
         {
+            // ★ 去污类开关显示的是**实际生效值**（普通档整组关闭），不是配置字段原值，
+            //   免得报告写"去黑点=开"而流水线其实一步没做。
             return "dpi=" + (o.ForceDpi > 0 ? o.ForceDpi.ToString() + "(强制)" : "跟随原图") +
+                   " 档位=" + (o.Thorough ? "极致(完整去污+保守去黑点+撤销保险+OCR定向)" : "普通(不做去污)") +
+                   " 去污=" + (o.CleanEnabled ? "开" : "关") +
                    " 方向=" + (o.OrientAuto ? "自动" : "关") +
                    " 镜像=" + (o.MirrorCheck ? "OCR" : "关") +
                    " 印章页跳过=" + (o.SkipSealOnly ? "开" : "关") +
                    " 彩色封面跳过=" + (o.SkipColorCover ? "开" : "关") +
-                   " 光照=" + (o.NormalizeLight ? "开" : "关") +
+                   " 光照=" + ((o.CleanEnabled && o.NormalizeLight) ? "开" : "关") +
                    " 色阶=" + (o.AutoLevels ? "开" : "关") +
                    " 二值化=" + (o.Binarize ? "开" : "关") +
-                   " 去黑点=" + (o.RemoveSpecks ? "开" : "关") + (o.SpeckMaxArea > 0 ? "(阈值" + o.SpeckMaxArea + ")" : "(阈值自动)") +
-                   " 脏块重建=" + (o.StainFill ? "开" : "关") + (o.StainMinArea > 0 ? "(阈值" + o.StainMinArea + ")" : "") +
+                   " 去黑点=" + ((o.CleanEnabled && o.RemoveSpecks) ? "开" : "关") +
+                     (o.SpeckMaxArea > 0 ? "(阈值" + o.SpeckMaxArea + ")" : "(阈值自动)") +
+                   " 脏块重建=" + ((o.CleanEnabled && o.StainFill) ? "开" : "关") +
+                     (o.StainMinArea > 0 ? "(阈值" + o.StainMinArea + ")" : "") +
                    " 印章=" + (o.SealKeep ? "保留红色(浓度" + o.SealStrength + ")" : "关") +
                    " 护字=" + (o.SpeckTextGuard ? "开" : "关") +
                    " 红框保护=" + (o.RedBoxProtect ? "开" : "关") +
-                   " 页边垃圾=" + (o.EdgeJunk ? "开" : "关") +
-                   " 档位=" + (o.Thorough ? "极致(保守去黑点+撤销保险+OCR定向)" : "普通") +
+                   " 页边垃圾=" + ((o.CleanEnabled && o.EdgeJunk) ? "开" : "关") +
                    " A4=" + (o.ToA4Page ? "开" : "关") + (o.Landscape ? "(横版)" : "(竖版)") +
                    (o.AutoLandscape ? "(内容横竖自适应)" : "") +
                    " 并行=" + Math.Max(1, Math.Min(4, o.Parallel)) + "页" +
-                   " 摩尔纹=" + (o.MoireRemove ? "陷波" : "关");
+                   " 摩尔纹=" + ((o.CleanEnabled && o.MoireRemove) ? "陷波" : "关");
         }
 
         static bool IsImage(string p)
