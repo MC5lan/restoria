@@ -6,7 +6,7 @@ function W([string]$s) { [void]$out.Add($s) }
 W ('用户目录      : ' + $env:USERPROFILE)
 W ('目录存在      : ' + (Test-Path -LiteralPath $env:USERPROFILE))
 
-$target = Join-Path $env:USERPROFILE 'Restoria'
+$target = Join-Path ([Environment]::GetFolderPath('ProgramFiles')) 'Restoria'
 W ('安装目录      : ' + $target)
 W ('安装目录存在  : ' + (Test-Path -LiteralPath $target))
 
@@ -20,7 +20,7 @@ if (Test-Path -LiteralPath $target) {
             W ('  [FILE] ' + $_.Name + '  ' + $_.Length + ' 字节')
         }
     }
-    foreach ($f in @('Restoria.exe', 'PicTool.exe.config', 'ai\onnxruntime.dll', 'ai\migan.onnx')) {
+    foreach ($f in @('Restoria.exe', 'Restoria.exe.config', 'unins000.exe', 'ai\onnxruntime.dll', 'ai\migan.onnx')) {
         $p = Join-Path $target $f
         if (Test-Path -LiteralPath $p) {
             W ('  ' + $f.PadRight(22) + ' : OK  ' + (Get-Item -LiteralPath $p).Length + ' 字节')

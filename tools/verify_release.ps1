@@ -31,17 +31,14 @@ function Skip([string]$name, [string]$why) {
     W ('  [SKIP] ' + $name.PadRight(32) + $why)
 }
 
-# 产品常量（与 tools\install\SetupInfo.cs 保持一致）
+# 产品常量（与 tools\install\Restoria.iss 保持一致）
 $AppName = 'Restoria'
-$AppId = 'PicToolArchiveSuite'
+$AppId = '{8F3C2A41-6D5B-4E7A-9C21-3B8E5A7D1F40}_is1'   # Inno Setup 会加 _is1 后缀
 $MainExe = 'Restoria.exe'
-$UninstExe = 'Uninstall.exe'
-$Marker = 'archivesuite.install'
+$UninstExe = 'unins000.exe'          # Inno Setup 自带卸载器
 $StartMenuFolder = 'Restoria'
 $DesktopLnk = 'Restoria.lnk'
-# 卸载快捷方式：安装器建的是「卸载 Restoria.lnk」（SetupGui.cs 里
-# "卸载 " + Name + ".lnk"）。这里原本写的是英文 "Uninstall Restoria.lnk"，
-# 改英文产品名时没同步，导致这项永远 FAIL —— 是脚本的问题，不是包的问题。
+# 中文向导下 {cm:UninstallProgram,Restoria} = 「卸载 Restoria」
 $UninstLnk = '卸载 ' + $AppName + '.lnk'
 
 # 读 .lnk 的目标：优先 COM；COM 被限制时退化为在字节流里找绝对路径字符串。
@@ -82,44 +79,15 @@ if ($pkgOk) {
     # （AI 载荷使体积随版本浮动），于是这项一直是 FAIL —— 阈值定得比产品小，
     # 检出的就不是问题。
     Chk '体积合理(单文件,非下载器外壳)' ($mb -gt 20 -and $mb -lt 400) ('体积 ' + $mb + ' MB')
-    # 载荷尾部索引 + 容器头：不能只看"最后 32 字节"——签名会在其后追加证书表。
-    # 所以从末尾往回搜 PTBOOT01，再顺着 offset 去读容器头 PTPK0001 与条目数。
+    # Inno Setup 自管载荷，不再检查旧的 PTBOOT01/PTPK0001 私有索引。
+    $fs = [IO.File]::OpenRead($pkg)
     try {
-        $fs = [IO.File]::OpenRead($pkg)
-        $scanLen = [int][Math]::Min(262144, $fs.Length)
-        $buf = New-Object byte[] $scanLen
-        $fs.Seek(-$scanLen, 'End') | Out-Null
-        $fs.Read($buf, 0, $scanLen) | Out-Null
-        $magic = [Text.Encoding]::ASCII.GetBytes('PTBOOT01')
-        $pOff = -1
-        for ($i = $scanLen - 32; $i -ge 0; $i--) {
-            $hit = $true
-            for ($k = 0; $k -lt 8; $k++) { if ($buf[$i + $k] -ne $magic[$k]) { $hit = $false; break } }
-            if ($hit) { $pOff = $i; break }
-        }
-        $okFooter = ($pOff -ge 0)
-        Chk '载荷尾部索引 PTBOOT01' $okFooter ('距文件末尾 ' + ($scanLen - $pOff) + ' 字节')
-        if ($okFooter) {
-            $dataOff = [BitConverter]::ToInt64($buf, $pOff + 8)
-            $dataLen = [BitConverter]::ToInt64($buf, $pOff + 16)
-            W ('        payloadOffset=' + $dataOff + '   payloadLength=' + $dataLen)
-            $fs.Seek($dataOff, 'Begin') | Out-Null
-            $head = New-Object byte[] 12
-            $fs.Read($head, 0, 12) | Out-Null
-            $pm = [Text.Encoding]::ASCII.GetString($head, 0, 8)
-            $cnt = [BitConverter]::ToInt32($head, 8)
-            Chk '载荷容器头 PTPK0001' ($pm -eq 'PTPK0001') ('magic=' + $pm + '   条目数=' + $cnt)
-            $stageDir = Join-Path $root '发布包\Restoria-install'
-            if (Test-Path -LiteralPath $stageDir) {
-                # 载荷会跳过几个文件（pack_payload.ps1 的 $skip：旧链路脚本 + setup-boot.exe 自己），
-                # 所以条目数允许比目录文件数少 1。
-                $files = @(Get-ChildItem -LiteralPath $stageDir -Recurse -File)
-                $ok = ($cnt -ge ($files.Count - 1) -and $cnt -le $files.Count)
-                Chk '条目数与安装目录文件数匹配' $ok ($cnt.ToString() + ' 条 vs 目录 ' + $files.Count + ' 个文件')
-            }
-        }
-        $fs.Close()
-    } catch { Chk '载荷尾部索引 PTBOOT01' $false ('读取失败: ' + $_.Exception.Message) }
+        $magic = [Text.Encoding]::ASCII.GetBytes('Inno Setup Setup Data')
+        $buf = New-Object byte[] [Math]::Min(65536, $fs.Length)
+        $fs.Read($buf, 0, $buf.Length) | Out-Null
+        $txt = [Text.Encoding]::ASCII.GetString($buf)
+        Chk 'Inno Setup 安装包标识' ($txt.Contains('Inno Setup')) 'PE 头含 Inno Setup 标识'
+    } finally { $fs.Close() }
 
     # 签名分三种情况，不是两种：
     #   Valid     —— 有证书且有效，通过
@@ -136,11 +104,11 @@ if ($pkgOk) {
         Chk '代码签名' $false ([string]$sig.Status + '  ' + [string]$sig.StatusMessage)
     }
     $vi = (Get-Item -LiteralPath $pkg).VersionInfo
-    Chk '文件属性-产品名' ($vi.ProductName -like '*安装程序*') ('ProductName=' + $vi.ProductName)
-    # 版本从 SetupInfo.cs 动态读（别再写死）
+    Chk '文件属性-产品名' ($vi.ProductName -like '*Setup*') ('ProductName=' + $vi.ProductName)
+    # 版本由 make_package.ps1 从 Version.cs 注入 .iss（别再写死）
     $expVer = '0.0.0'
     try {
-        $m = (Select-String -LiteralPath (Join-Path $PSScriptRoot 'install\SetupInfo.cs') -Pattern 'Version\s*=\s*"([0-9.]+)"' | Select-Object -First 1)
+        $m = (Select-String -LiteralPath (Join-Path $root 'src\Core\Version.cs') -Pattern 'public const string Version = "([^"]+)"' | Select-Object -First 1)
         if ($m) { $expVer = $m.Matches[0].Groups[1].Value }
     } catch { }
     Chk '文件属性-版本' ($vi.FileVersion -like ($expVer + '*')) ('FileVersion=' + $vi.FileVersion + '，期望 ' + $expVer + '*')
@@ -158,7 +126,7 @@ W ('      ' + $Dir)
 $dirOk = Test-Path -LiteralPath $Dir
 Chk '目录存在' $dirOk $Dir
 if ($dirOk) {
-    foreach ($f in @($MainExe, $UninstExe, $Marker, 'ai\onnxruntime.dll', 'ai\migan.onnx', 'ai\win7\onnxruntime.dll')) {
+    foreach ($f in @($MainExe, $UninstExe, 'ai\onnxruntime.dll', 'ai\migan.onnx', 'ai\win7\onnxruntime.dll')) {
         $p = Join-Path $Dir $f
         $exists = Test-Path -LiteralPath $p
         $detail = '缺失'
@@ -213,7 +181,7 @@ foreach ($view in @('Registry64', 'Registry32')) {
                 W ('        ' + $n.PadRight(20) + ' = ' + [string]$k.GetValue($n))
             }
             $us = [string]$k.GetValue('UninstallString')
-            Chk ('  ' + $view + ' 卸载串指向Uninstall.exe') ($us -like ('*' + $UninstExe + '*')) $us
+            Chk ('  ' + $view + ' 卸载串指向unins000.exe') ($us -like ('*' + $UninstExe + '*')) $us
             $k.Close()
         } else {
             W ('      [' + $view + '] 无此键')

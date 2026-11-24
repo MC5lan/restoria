@@ -134,7 +134,7 @@ if (Test-Path $ndp) {
 } else { Log '  .NET 4.8 离线安装包: 未包含（目标机需自行安装 4.8）' }
 
 # 文档
-foreach ($f in @('README.md')) {
+foreach ($f in @('README.md', 'THIRD_PARTY_NOTICES')) {
     $p = Join-Path $root $f
     if (Test-Path $p) { Copy-Item -LiteralPath $p -Destination $stage -Force }
 }
@@ -158,46 +158,41 @@ Restoria —— 安装与使用（老师/管理员版）
 ==========================================
 
 一、怎么装（在目标机上）
-  方式 A：单文件安装程序（推荐）
+  方式 A：通用安装程序（推荐，Inno Setup 标准向导）
    1. 把「Restoria-setup.exe」拷到目标机，双击。
-   2. 会弹一次系统权限确认（UAC）—— 这是正规安装程序的正常行为，点「是」。
-   3. 先看许可协议，点「我接受并安装」。
-   4. 出现白底安装窗口，顶部四步指示：检查环境 → 选择位置 → 正在安装 → 完成。
-      第一屏会把本机体检结果列出来（系统版本、.NET Framework、程序包、AI 素材）。
-   5. 安装位置默认  C:\Program Files\Restoria
-      一般不用改，直接点右下角「开始安装」。
-   6. 装完窗口上显示四行结果：程序文件 / AI 修复 / 扫描就绪 / 快捷方式与卸载。
-      点「打开程序」即可启动；桌面和开始菜单都已生成快捷方式。
+   2. 弹出系统权限确认（UAC），点「是」—— 装到 Program Files 需要管理员权限。
+   3. 选择语言（简体中文 / English），点「下一步」。
+   4. 阅读许可协议，选「我接受」，点「下一步」。
+   5. 安装位置默认  C:\Program Files\Restoria，一般不用改。
+   6. 可选择是否创建桌面快捷方式，然后点「安装」，完成后点「结束」。
+   7. 从开始菜单（或桌面快捷方式）启动 Restoria。
 
-  方式 B：解压安装包（适用于 Win7 上没装 .NET 4.x 的机器）
+  方式 B：免安装压缩包（没有管理员权限时）
    1. 解压「Restoria-portable.zip」到任意文件夹。
-   2. 【重要】Win7 若没装 .NET Framework 4.x，双击安装程序会没有任何反应。
-      这时先双击文件夹里的  ndp48-x86-x64-allos-enu.exe  装好 .NET Framework 4.8
-      （装完建议重启一次），再双击 setup-boot.exe 安装。
-   3. 其余步骤同方式 A 第 3 步起。
-
-  说明：为什么单文件版在 Win7 上可能"双击没反应" ——
-    安装程序本身也是 .NET 程序，系统没有 .NET 4.x 时它自己就起不来。
-    Win8/10/11 自带 .NET 4.x，不存在这个问题。
+   2. 双击 setup-boot.exe，按提示装到当前用户目录（不需要管理员权限）。
+   3. Win7 若没装 .NET Framework 4.8，先双击 ndp48-x86-x64-allos-enu.exe
+      装好并重启一次，再运行主程序。
 
 二、怎么卸
-  方法一：开始菜单 → Restoria → 卸载 Restoria
-  方法二：控制面板 → 程序和功能 → Restoria → 卸载
-  方法三：安装目录里双击  Uninstall.exe
+  方法一：控制面板 → 程序和功能 → Restoria → 卸载
+  方法二：开始菜单 → Restoria → 卸载 Restoria
+  方法三：安装目录里双击  unins000.exe
   注意：您用本软件处理过的图片不会被删除。
 
 三、装了什么
   Restoria.exe      主程序（需要 .NET Framework 4.8）
-  Uninstall.exe                    卸载程序（控制面板的卸载入口指向它）
-  archivesuite.install        安装标记（卸载程序靠它确认目录归属，请勿删改）
+  Restoria.exe.config       运行时配置
+  Restoria.pdb              调试符号（崩溃报告可定位到行号）
+  unins000.exe              Inno Setup 卸载程序（控制面板入口指向它）
   ai\onnxruntime.dll          AI 修复运行时（Win8/10/11 用这一份）
   ai\win7\                    Win7 专用兼容层（Win10/11 不加载它，可删）
   ai\migan.onnx               AI 修复模型（约 28MB）
   ai\ocr\                     OCR 素材（镜像检测用，可选）
   ndp48-x86-x64-allos-enu.exe .NET 4.8 离线安装包（系统没有 4.8 时双击它先装）
-  vc_redist\                  VC++ 运行库安装包（仅 AI 模式需要，安装程序会自动处理）
+  vc_redist\                  VC++ 运行库安装包（仅 AI 模式需要）
   docs\用户使用手册.md         完整用户手册（界面 / 功能 / 快捷键 / FAQ）
   docs\AI_SETUP.md            AI 模式的详细说明与故障排查
+  THIRD_PARTY_NOTICES          第三方组件许可证全文
 
 四、给学生的三句话
   1. 双击桌面「Restoria」→ 点【打开文件夹】选照片文件夹。
@@ -212,9 +207,10 @@ Restoria —— 安装与使用（老师/管理员版）
   把 onnxruntime.dll 和 migan.onnx 放进安装目录的 ai\ 文件夹，重启程序即可。
 
 六、常见问题
-  * 双击安装程序没反应：本机缺少 .NET Framework 4.x。解压安装包，先装
-    ndp48-x86-x64-allos-enu.exe，再运行安装程序。
-  * 提示"缺少 .NET Framework"或自检不过：同上，先装 4.8（装完重启一次）。
+  * 安装程序双击没反应：Inno Setup 生成的安装包是原生程序，不依赖 .NET；
+    若确实打不开，检查是否被安全软件拦截，或改用方式 B 的免安装包。
+  * 装完启动主程序提示"缺少 .NET Framework"：先双击安装目录里的
+    ndp48-x86-x64-allos-enu.exe 装好 4.8（装完重启一次）。
   * AI 模式报错/不可用：确认安装目录 ai\ 里有 dll 和 onnx；若提示缺 DLL，
     运行 vc_redist\vc_redist.x64.exe 安装 VC++ 运行库。
   * 安装窗口一闪而过或提示失败：把 %TEMP%\PicTool-install.log 发给老师（日志文件路径
@@ -255,24 +251,44 @@ Retire $zip
 Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $zip -Force
 Log ('  ' + $zip + '  (' + [Math]::Round((Get-Item $zip).Length / 1MB, 1) + ' MB)')
 
-# ---------- 4/5 生成单文件安装程序 ----------
+# ---------- 4/5 生成通用安装包（Inno Setup 6） ----------
 Log ''
-Log '=== 4/5 生成单文件安装程序 ==='
-# 上一次测试可能还留着安装窗口，占着文件会删不掉：先按路径关掉
+Log '=== 4/5 生成通用安装包（Inno Setup 6）==='
+# 旧的自研单文件安装器源码保留在 tools\install\ 作参考，但发行不再使用它。
+# 换成 Inno Setup 后：标准向导、标准卸载入口、Win7 SP1+ 兼容，也不需要再维护
+# 那套 PTBOOT01/PTPK0001 私有载荷索引（签名后索引会被证书表推走的老坑一并消失）。
 try { Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $outExe } | Stop-Process -Force -ErrorAction SilentlyContinue } catch { }
 Start-Sleep -Milliseconds 400
 Retire $outExe
 
-& powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $root 'tools\pack_payload.ps1') `
-    -Stage $stage -BootExe $boot -OutExe $outExe
-if (-not (Test-Path $outExe)) { throw '打包失败：没有生成单文件安装程序' }
+$iss = Join-Path $root 'tools\install\Restoria.iss'
+if (-not (Test-Path $iss)) { throw ('找不到 Inno Setup 脚本：' + $iss) }
+$iscc = $env:INNO_SETUP_ISCC
+if (-not $iscc) {
+    $pf86 = [Environment]::GetFolderPath([Environment+SpecialFolder]::ProgramFilesX86)
+    $pf = [Environment]::GetFolderPath([Environment+SpecialFolder]::ProgramFiles)
+    foreach ($cand in @((Join-Path $pf86 'Inno Setup 6\ISCC.exe'), (Join-Path $pf 'Inno Setup 6\ISCC.exe'))) {
+        if ($cand -and (Test-Path $cand)) { $iscc = $cand; break }
+    }
+}
+if (-not $iscc -or -not (Test-Path $iscc)) {
+    throw '找不到 Inno Setup 6 编译器 ISCC.exe。请安装 Inno Setup 6，或设置环境变量 INNO_SETUP_ISCC 指向 ISCC.exe。'
+}
+$vline = Select-String -Path (Join-Path $root 'src\Core\Version.cs') -Pattern 'public const string Version = "([^"]+)"' | Select-Object -First 1
+if (-not $vline) { throw '无法从 src\Core\Version.cs 读取版本号' }
+$version = $vline.Matches[0].Groups[1].Value
+Log ('  编译器: ' + $iscc)
+Log ('  版本  : ' + $version)
+& $iscc ("/DMyAppVersion=$version") $iss | ForEach-Object { Log ('  ' + $_) }
+if ($LASTEXITCODE -ne 0) { throw ('Inno Setup 编译失败，退出码 ' + $LASTEXITCODE) }
+if (-not (Test-Path $outExe)) { throw '打包失败：Inno Setup 没有生成 Restoria-setup.exe' }
 
-# 签名（自签名证书；脚本内部会说明这是过渡方案）
+# 可选代码签名（有 sign_setup.ps1 且未指定 -SkipSign 时）
 if (-not $SkipSign) {
-    Log ''
-    Log '  代码签名…'
     $signScript = Join-Path $root 'tools\sign_setup.ps1'
     if (Test-Path $signScript) {
+        Log ''
+        Log '  代码签名…'
         & powershell -NoProfile -ExecutionPolicy Bypass -File $signScript -File $outExe
     } else {
         Log '  （未找到 tools\sign_setup.ps1，跳过签名；正式发布请自备代码签名证书）'
@@ -281,43 +297,15 @@ if (-not $SkipSign) {
     Log '  （已指定 -SkipSign，跳过签名）'
 }
 
-# ---------- 签名后复检：安装器还认不认得出自己的载荷 ----------
-# 这一步**必须**在签名之后做。原因：Authenticode 会把证书表追加到文件末尾，
-# 打包时那个"最后 32 字节的尾部索引"就被推到前面去了。以前只在打包后校验，
-# 签完名再打开就认不出载荷 —— 双击等于装不上（2026-09-21 抓到）。
+# ---------- 签名后复检：安装包版本信息 ----------
+# Inno Setup 自己管理载荷，不再需要旧的 PTBOOT01/PTPK0001 私有索引复检。
 Log ''
-Log '=== 签名后复检载荷 ==='
-$fs = [IO.File]::OpenRead($outExe)
-try {
-    $scanLen = [int][Math]::Min(262144, $fs.Length)
-    $buf = New-Object byte[] $scanLen
-    $fs.Seek(-$scanLen, 'End') | Out-Null
-    $fs.Read($buf, 0, $scanLen) | Out-Null
-    $magic = [Text.Encoding]::ASCII.GetBytes('PTBOOT01')
-    $pOff = -1
-    for ($i = $scanLen - 32; $i -ge 0; $i--) {
-        $hit = $true
-        for ($k = 0; $k -lt 8; $k++) { if ($buf[$i + $k] -ne $magic[$k]) { $hit = $false; break } }
-        if ($hit) { $pOff = $i; break }
-    }
-    if ($pOff -lt 0) { throw '签名后找不到载荷尾部索引（PTBOOT01）—— 安装器将无法识别安装包' }
-    $dataOff = [BitConverter]::ToInt64($buf, $pOff + 8)
-    $dataLen = [BitConverter]::ToInt64($buf, $pOff + 16)
-    $fs.Seek($dataOff, 'Begin') | Out-Null
-    $head = New-Object byte[] 12
-    $fs.Read($head, 0, 12) | Out-Null
-    $pm = [Text.Encoding]::ASCII.GetString($head, 0, 8)
-    $cnt = [BitConverter]::ToInt32($head, 8)
-    if ($pm -ne 'PTPK0001') { throw ('签名后载荷容器头不对：' + $pm) }
-    # 载荷会跳过几个文件（见 pack_payload.ps1 的 $skip：旧链路脚本 + setup-boot.exe 自己），
-    # 所以条目数允许比目录文件数少 1（本工程的舞台目录里只有 setup-boot.exe 命中）。
-    $stageFiles = @(Get-ChildItem -LiteralPath $stage -Recurse -File)
-    $lo = $stageFiles.Count - 1
-    if ($cnt -lt $lo -or $cnt -gt $stageFiles.Count) {
-        throw ('载荷条目数 ' + $cnt + ' 与安装目录文件数 ' + $stageFiles.Count + ' 不匹配')
-    }
-    Log ('  [通过] 索引距末尾 ' + ($scanLen - $pOff) + ' 字节；条目 ' + $cnt + ' 个（安装目录 ' + $stageFiles.Count + ' 个文件，差值为被跳过的入口文件）')
-} finally { $fs.Close() }
+Log '=== 签名后复检 ==='
+$viPkg = (Get-Item -LiteralPath $outExe).VersionInfo
+if ($viPkg.FileVersion -notlike ($version + '*')) {
+    throw ('安装包版本信息不对：' + $viPkg.FileVersion + '，期望 ' + $version + '*')
+}
+Log ('  [通过] 安装包版本 ' + $viPkg.FileVersion + '  产品名 ' + $viPkg.ProductName)
 
 # 旧版 WinRAR SFX 产物（187MB 的「一键安装.exe」）退休：留着只会让人装错版本。
 # 用改名而不是删除 —— 本机 safe-delete 钩子会拦删除，而且万一还想回头看一眼。

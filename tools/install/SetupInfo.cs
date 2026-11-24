@@ -1,4 +1,4 @@
-﻿﻿﻿// SetupInfo.cs — 安装/卸载程序共用的产品常量（唯一出处，别再在别处硬编码这些名字）。
+﻿﻿﻿﻿// SetupInfo.cs — 安装/卸载程序共用的产品常量（唯一出处，别再在别处硬编码这些名字）。
 //
 // 注意：程序集属性（AssemblyVersion / AssemblyTitle …）**不在这里** ——
 // 安装器与卸载器是两个独立 exe，属性各不相同：
@@ -12,7 +12,7 @@ namespace PicToolSetup
     /// <summary>安装/卸载知道的产品信息（与主程序 AppInfo 对齐；此处不引用主程序源）。</summary>
     static class SetupInfo
     {
-        public const string Version = "1.6.1";
+        public const string Version = "1.6.2";
         public const string Name = "Restoria";
         public const string Publisher = "Restoria";
         public const string Copyright = "Copyright (c) 2026 MC5lan. Licensed under MIT.";
