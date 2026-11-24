@@ -132,7 +132,7 @@ Read this before assuming it will handle your material.
 
 ## Building from source
 
-**Requirements:** Windows with .NET Framework 4.x. Nothing else — no Visual Studio, no NuGet restore.
+**Requirements for building:** Windows with .NET Framework 4.x. `build.bat` needs nothing else — no Visual Studio, no NuGet restore. Python 3 is only needed if you run the check scripts (`tools\gate.py`, `tools\check_resources.py`) or the release packaging tools; Inno Setup 6 is needed only to build `Restoria-setup.exe`.
 
 ```bat
 build.bat

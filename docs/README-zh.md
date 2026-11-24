@@ -132,7 +132,7 @@
 
 ## 从源码构建
 
-**环境要求**：Windows + .NET Framework 4.x。别的都不需要——不需要 Visual Studio，不需要还原 NuGet。
+**构建环境要求**：Windows + .NET Framework 4.x。`build.bat` 别的都不需要——不需要 Visual Studio，不需要还原 NuGet。只有跑检查脚本（`tools\gate.py`、`tools\check_resources.py`）或打包工具时才需要 Python 3；只有构建 `Restoria-setup.exe` 时才需要 Inno Setup 6。
 
 ```bat
 build.bat

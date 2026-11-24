@@ -75,7 +75,7 @@ namespace PicTool
             if (startPath == "--archive")
             {
                 // 诊断/批处理用：--archive <输入文件或文件夹> <输出文件或文件夹> [强制dpi] [选项]
-                // 一键归档流水线：转正 → 裁边 → 光照归一化 → 自动色阶 → 白底黑字 → 去黑点 → 标准 A4
+                // 一键归档流水线：方向/镜像 → 纠偏 → 裁边 →（极致档：全部去污）→ 自动色阶 → 二值化 → A4
                 string rep = ArchiveProcessor.RunForTest(args);
                 try { File.WriteAllText(Path.Combine(Path.GetTempPath(), "PicTool-archive.txt"), rep, System.Text.Encoding.UTF8); } catch { }
                 return;

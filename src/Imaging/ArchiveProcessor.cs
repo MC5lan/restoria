@@ -146,6 +146,7 @@ namespace PicTool
         public int Width, Height;             // 输出尺寸
         public bool SpecksUndone;             // ★ 去黑点被"撤销保险"整步撤销（极致档）
         public bool Cancelled;                // ★ 被取消（P1-4）：Run 返回 null，不得保存半成品
+        public bool CleaningSkipped;          // ★ 普通档整组跳过去污（报告用，避免"黑点 0"被误读成没检出）
         public string OrientHow = "";         // ★ 方向是怎么判出来的（"装订孔"/"OCR四向"）
         public string Steps = "";             // 实际执行了哪些步骤（供报告与自检）
     }
@@ -190,6 +191,7 @@ namespace PicTool
             info = new ArchiveResult();
             if (src == null) return null;
             if (opt == null) opt = new ArchiveOptions();
+            info.CleaningSkipped = !opt.CleanEnabled;
 
             int dpi = opt.ForceDpi > 0 ? opt.ForceDpi : GuessDpi(src);
             info.DpiUsed = dpi;
@@ -1097,9 +1099,10 @@ namespace PicTool
                        " @" + info.DpiUsed + "dpi" +
                        (info.OrientTurns > 0 ? "   方向 " + info.OrientTurns * 90 + "°(" + info.OrientHow + ")" : "") +
                        (info.Mirrored ? "   镜像已翻" : "") +
-                       (info.SpecksUndone ? "   去黑点已撤销(保字)" : "   去黑点 " + info.SpecksRemoved) +
+                       (info.CleaningSkipped ? "   去污=跳过(普通档)"
+                                             : (info.SpecksUndone ? "   去黑点已撤销(保字)" : "   去黑点 " + info.SpecksRemoved)) +
                        "   印章 " + info.SealsFound + " 枚/红像素 " + info.RedPixels +
-                       "   脏块重建 " + info.StainsFound + " 块" +
+                       (info.CleaningSkipped ? "" : "   脏块重建 " + info.StainsFound + " 块") +
                        "   " + sw.ElapsedMilliseconds + "ms   [" + info.Steps + "]";
             }
             catch (Exception ex)
@@ -1184,7 +1187,7 @@ namespace PicTool
             //   免得报告写"去黑点=开"而流水线其实一步没做。
             return "dpi=" + (o.ForceDpi > 0 ? o.ForceDpi.ToString() + "(强制)" : "跟随原图") +
                    " 档位=" + (o.Thorough ? "极致(完整去污+保守去黑点+撤销保险+OCR定向)" : "普通(不做去污)") +
-                   " 去污=" + (o.CleanEnabled ? "开" : "关") +
+                   " 去污=" + (o.CleanEnabled ? "开" : "关(普通档整组跳过；--thorough 才生效)") +
                    " 方向=" + (o.OrientAuto ? "自动" : "关") +
                    " 镜像=" + (o.MirrorCheck ? "OCR" : "关") +
                    " 印章页跳过=" + (o.SkipSealOnly ? "开" : "关") +

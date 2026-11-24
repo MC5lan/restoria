@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿// EulaText.cs — 安装时展示的许可证确认（MIT License）。
+﻿﻿﻿﻿﻿﻿// EulaText.cs — 安装时展示的许可证确认（MIT License）。
 //
 // 单独一个文件是为了好改：协议正文只在 Text 里，改完重新跑 tools\build_setup.ps1 即可。
 // 本软件以 MIT 许可证开源——允许自由使用、修改、合并、发布、分发，只需保留版权声明。
@@ -15,7 +15,7 @@ namespace PicToolSetup
         public const string Text =
 @"Restoria · MIT 许可证
 
-版本：1.6.3
+版本：1.6.4
 
 本软件以 MIT 许可证（MIT License）开源发布。
 

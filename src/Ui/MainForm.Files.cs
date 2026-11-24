@@ -432,9 +432,18 @@ namespace PicTool
                 b.Append(" | 倾斜 ").Append(info.SkewDeg.ToString("0.00")).Append("°(").Append(info.SkewHow).Append(")");
             if (info.MoireRemoved)
                 b.Append(" | 摩尔纹陷波(").Append(info.MoirePeriod.ToString("0")).Append("行)");
-            if (info.SpecksUndone) b.Append(" | 去黑点已撤销(保字)");
-            else b.Append(" | 黑点 ").Append(info.SpecksRemoved);
-            b.Append(" | 脏块 ").Append(info.StainsFound);
+            if (info.CleaningSkipped)
+            {
+                // 普通档整组跳过去污。"黑点 0 / 脏块 0" 会被误读成没检出，
+                // 明确写成"跳过"，与档位行呼应。
+                b.Append(" | 去污 跳过(普通档)");
+            }
+            else
+            {
+                if (info.SpecksUndone) b.Append(" | 去黑点已撤销(保字)");
+                else b.Append(" | 黑点 ").Append(info.SpecksRemoved);
+                b.Append(" | 脏块 ").Append(info.StainsFound);
+            }
             b.Append(" | 章 ").Append(info.SealsFound);
             b.Append(" | ").Append(ms).Append("ms");
             return b.ToString();
